@@ -67,7 +67,7 @@ async function loadService(id) {
                     </div>
 
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="/schedule.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <a href="/contacts.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
                             <i class="bi bi-calendar-check"></i> Записаться на приём
                         </a>
                         <a href="tel:+79991234567" class="btn btn-outline-primary rounded-pill px-4">

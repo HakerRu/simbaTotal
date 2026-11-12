@@ -99,8 +99,8 @@ async function loadDoctor(id) {
                     </div>
 
                     <div class="mt-4">
-                        <a href="/schedule.html?doctor=${encodeURIComponent(d.userId)}" class="btn btn-primary rounded-pill px-4 fw-semibold">
-                            <i class="bi bi-calendar-check"></i> Смотреть расписание
+                        <a href="/contacts.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-calendar-check"></i> Записаться на приём
                         </a>
                     </div>
                 </div>

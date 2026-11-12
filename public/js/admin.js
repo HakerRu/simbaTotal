@@ -28,12 +28,23 @@ function setupLogout() {
 }
 
 function setupSidebar() {
-    document.querySelectorAll('#adminSidebar .nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
+    const activateSection = (section) => {
+        document.querySelectorAll('#adminSidebar .nav-link').forEach(l => {
+            l.classList.toggle('active', l.dataset.section === section);
+        });
+        document.querySelectorAll('#adminMobileNav button').forEach(b => {
+            const isActive = b.dataset.section === section;
+            b.classList.toggle('active', isActive);
+            b.classList.toggle('btn-primary', isActive);
+            b.classList.toggle('btn-outline-secondary', !isActive);
+        });
+        loadSection(section);
+    };
+
+    document.querySelectorAll('#adminSidebar .nav-link, #adminMobileNav button').forEach(item => {
+        item.addEventListener('click', (e) => {
             e.preventDefault();
-            document.querySelectorAll('#adminSidebar .nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            loadSection(link.dataset.section);
+            activateSection(item.dataset.section);
         });
     });
 }
