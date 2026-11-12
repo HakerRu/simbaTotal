@@ -27,9 +27,9 @@ function updateUserMenu(user) {
     if (user) {
         userMenu.innerHTML = `
             <div class="dropdown">
-                <button class="btn btn-nav-login dropdown-toggle"
-                        type="button" data-bs-toggle="dropdown" aria-label="Аккаунт">
-                    <i class="bi bi-person"></i>
+                <button class="btn btn-outline-light btn-sm rounded-pill px-3 dropdown-toggle" 
+                        type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle"></i> ${user.userFirstName}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile.html">
@@ -49,8 +49,8 @@ function updateUserMenu(user) {
         `;
     } else {
         userMenu.innerHTML = `
-            <a class="btn btn-nav-login" href="/login.html" aria-label="Войти">
-                <i class="bi bi-person"></i>
+            <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="/login.html">
+                <i class="bi bi-person"></i> Войти
             </a>
         `;
     }
@@ -83,13 +83,10 @@ async function updateCartCount() {
 // Активная ссылка
 function highlightCurrentPage() {
     const currentPath = window.location.pathname;
-    document.querySelectorAll('#mainNav .nav-link, #mainNav .dropdown-item').forEach(link => {
-        const href = link.getAttribute('href');
-        const matches = href === currentPath || (currentPath === '/' && (href === '/' || href === '/index.html'));
-        if (!matches) return;
-        link.classList.add('active');
-        const parent = link.closest('.dropdown');
-        if (parent) parent.querySelector('.nav-link')?.classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
+        }
     });
 }
 
