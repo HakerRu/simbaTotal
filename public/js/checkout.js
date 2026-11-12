@@ -34,7 +34,7 @@ function renderSummary() {
     document.getElementById('orderSummary').innerHTML = `
         ${checkoutState.cartItems.map(item => `
             <div class="d-flex justify-content-between mb-2 small">
-                <span>${item.productName} <span class="text-muted">× ${item.quantity}</span></span>
+                <span>${escapeHtml(item.productName)} <span class="text-muted">× ${item.quantity}</span></span>
                 <span class="fw-semibold">${Number((item.productDiscountPrice || item.productPrice) * item.quantity).toLocaleString()} ₽</span>
             </div>
         `).join('')}
@@ -56,10 +56,12 @@ function renderSummary() {
 
 function setupDateInput() {
     const dateInput = document.getElementById('pickupDate');
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     dateInput.min = today;
 
     dateInput.addEventListener('change', () => {
+        checkoutState.selectedTime = null;
         if (dateInput.value) generateTimeSlots();
     });
 }
@@ -104,10 +106,14 @@ async function generateTimeSlots() {
 }
 
 async function checkAllSlots(date, slots) {
-    for (const time of slots) {
-        try {
-            const data = await API.get(`/shop/orders/check-slot?date=${date}&time=${time}`);
-            if (!data.available) {
+    try {
+        const data = await API.get(`/shop/orders/slots?date=${encodeURIComponent(date)}`);
+        if (!data.success) return;
+        const maxPerSlot = data.maxPerSlot || 4;
+        const counts = data.slots || {};
+
+        for (const time of slots) {
+            if ((counts[time] || 0) >= maxPerSlot) {
                 const btn = document.querySelector(`.time-slot[data-time="${time}"]`);
                 if (btn) {
                     btn.disabled = true;
@@ -116,8 +122,8 @@ async function checkAllSlots(date, slots) {
                     btn.innerHTML = `${time}<br><small>занято</small>`;
                 }
             }
-        } catch (e) {}
-    }
+        }
+    } catch (e) {}
 }
 
 function setupForm() {

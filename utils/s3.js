@@ -33,10 +33,22 @@ const uploadToS3 = async (file, folder = 'products') => {
 };
 
 const deleteFromS3 = async (key) => {
+    if (!key) return;
     await s3Client.send(new DeleteObjectCommand({
         Bucket: process.env.S3_BUCKET,
         Key: key,
     }));
 };
 
-module.exports = { uploadToS3, deleteFromS3 };
+const deleteManyFromS3 = async (keys = []) => {
+    const uniqueKeys = [...new Set(keys.filter((k) => typeof k === 'string' && k.trim()))];
+    for (const key of uniqueKeys) {
+        try {
+            await deleteFromS3(key);
+        } catch (err) {
+            console.error(`Ошибка удаления файла из S3 (${key}):`, err.message);
+        }
+    }
+};
+
+module.exports = { uploadToS3, deleteFromS3, deleteManyFromS3 };

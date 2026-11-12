@@ -48,7 +48,7 @@ async function loadPost(id) {
                         </span>
                     </div>
                     
-                    <h1 class="fw-bold mb-4">${p.postTitle}</h1>
+                    <h1 class="fw-bold mb-4">${escapeHtml(p.postTitle)}</h1>
                     
                     ${media.length > 0 ? `
                         <div id="postCarousel" class="carousel slide mb-4 rounded-4 overflow-hidden" data-bs-ride="carousel">
@@ -63,9 +63,9 @@ async function loadPost(id) {
                                 ${media.map((m, i) => `
                                     <div class="carousel-item ${i === 0 ? 'active' : ''}">
                                         ${m.mediaType === 'video' ? `
-                                            <video src="${m.mediaUrl}" class="d-block w-100" controls style="max-height:600px;object-fit:contain;background:#000"></video>
+                                            <video src="${safeUrl(m.mediaUrl)}" class="d-block w-100" controls style="max-height:600px;object-fit:contain;background:#000"></video>
                                         ` : `
-                                            <img src="${m.mediaUrl}" class="d-block w-100" style="max-height:600px;object-fit:contain;background:#f5f9ff">
+                                            <img src="${safeUrl(m.mediaUrl)}" class="d-block w-100" style="max-height:600px;object-fit:contain;background:#f5f9ff">
                                         `}
                                     </div>
                                 `).join('')}
@@ -82,13 +82,13 @@ async function loadPost(id) {
                     ` : ''}
                     
                     <div class="post-content" style="white-space:pre-line;line-height:1.8;font-size:1.05rem">
-                        ${p.postContent || ''}
+                        ${escapeHtml(p.postContent || '')}
                     </div>
                     
                     ${p.authorFirstName ? `
                         <div class="mt-5 pt-4 border-top">
                             <small class="text-muted">Автор:</small>
-                            <strong>${p.authorFirstName} ${p.authorLastName || ''}</strong>
+                            <strong>${escapeHtml(p.authorFirstName)} ${escapeHtml(p.authorLastName || '')}</strong>
                         </div>
                     ` : ''}
                     

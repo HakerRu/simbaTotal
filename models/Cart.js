@@ -13,6 +13,14 @@ class Cart {
         return result.rows;
     }
 
+    static async getItem(userId, productId) {
+        const result = await db.query(
+            'SELECT * FROM cart_items WHERE "userId" = $1 AND "productId" = $2',
+            [userId, productId]
+        );
+        return result.rows[0];
+    }
+
     static async getCount(userId) {
         const result = await db.query(
             `SELECT COALESCE(SUM("quantity"), 0) as count FROM cart_items WHERE "userId" = $1`,

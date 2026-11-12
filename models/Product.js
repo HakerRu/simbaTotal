@@ -62,16 +62,17 @@ class Product {
         return parseInt(result.rows[0].total);
     }
 
-    static async getById(productId) {
-        const result = await db.query(
-            `SELECT p.*, pc."categoryName",
+    static async getById(productId, { activeOnly = true } = {}) {
+        let query = `SELECT p.*, pc."categoryName",
          (SELECT json_agg(pi.*) FROM product_images pi WHERE pi."productId" = p."productId") as images,
          (SELECT pi."imageUrl" FROM product_images pi WHERE pi."productId" = p."productId" AND pi."isMain" = true LIMIT 1) as "mainImage"
          FROM products p
          LEFT JOIN product_categories pc ON p."categoryId" = pc."categoryId"
-         WHERE p."productId" = $1`,
-            [productId]
-        );
+         WHERE p."productId" = $1`;
+        if (activeOnly) {
+            query += ` AND p."isActive" = true`;
+        }
+        const result = await db.query(query, [productId]);
         return result.rows[0];
     }
 
@@ -102,6 +103,14 @@ class Product {
 
     static async deleteImages(productId) {
         await db.query('DELETE FROM product_images WHERE "productId" = $1', [productId]);
+    }
+
+    static async getImageKeys(productId) {
+        const result = await db.query(
+            'SELECT "imageKey" FROM product_images WHERE "productId" = $1 AND "imageKey" IS NOT NULL',
+            [productId]
+        );
+        return result.rows.map((r) => r.imageKey);
     }
 
     static async getImages(productId) {

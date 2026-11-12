@@ -70,42 +70,45 @@ function renderReels() {
 
     container.innerHTML = reels.map((post, index) => {
         const firstMedia = post.media && post.media[0] ? post.media[0] : null;
-        const isVideo = firstMedia && firstMedia.mediaType === 'video';
-        const isImage = firstMedia && firstMedia.mediaType === 'image';
+        const mediaSrc = firstMedia ? safeUrl(firstMedia.mediaUrl) : '';
+        const isVideo = firstMedia && firstMedia.mediaType === 'video' && mediaSrc;
+        const isImage = firstMedia && firstMedia.mediaType === 'image' && mediaSrc;
         const isArticle = post.postType === 'article';
         const author = post.authorFirstName ? `${post.authorFirstName} ${post.authorLastName || ''}`.trim() : 'ВетКлиника Симба';
+        const safeAuthor = escapeHtml(author);
+        const safeTitle = escapeHtml(post.postTitle);
         const likesCount = post.likesCount || 0;
         const isLiked = post.isLiked || false;
 
         return `
-        <div class="reel-item" data-index="${index}" data-id="${post.postId}">
+        <div class="reel-item" data-index="${index}" data-id="${escapeHtml(post.postId)}">
             ${isVideo ? `
-                <video class="reel-video" src="${firstMedia.mediaUrl}" loop playsinline preload="metadata" muted></video>
+                <video class="reel-video" src="${mediaSrc}" loop playsinline preload="metadata" muted></video>
             ` : isImage ? `
-                <img class="reel-image" src="${firstMedia.mediaUrl}" alt="${post.postTitle}">
+                <img class="reel-image" src="${mediaSrc}" alt="${safeTitle}">
             ` : `
                 <div class="reel-text-only">
                     <div class="reel-type-badge">${isArticle ? '📝 Статья' : '🎬 Рилс'}</div>
-                    <h2>${post.postTitle}</h2>
-                    <p>${(post.postContent || '').substring(0, 300)}${post.postContent && post.postContent.length > 300 ? '...' : ''}</p>
+                    <h2>${safeTitle}</h2>
+                    <p>${escapeHtml((post.postContent || '').substring(0, 300))}${post.postContent && post.postContent.length > 300 ? '...' : ''}</p>
                 </div>
             `}
             
             <div class="reel-actions">
                 <div class="text-center">
-                    <button class="reel-action" onclick="toggleLike(${post.postId}, this)">
+                    <button class="reel-action" onclick="toggleLike(${Number(post.postId)}, this)">
                         <i class="bi ${isLiked ? 'bi-heart-fill text-danger' : 'bi-heart'}"></i>
                     </button>
                     <div class="reel-action-count">${likesCount}</div>
                 </div>
                 <div class="text-center">
-                    <button class="reel-action" onclick="openPost(${post.postId})">
+                    <button class="reel-action" onclick="openPost(${Number(post.postId)})">
                         <i class="bi bi-eye"></i>
                     </button>
                     <div class="reel-action-count">${post.postViews || 0}</div>
                 </div>
                 <div class="text-center">
-                    <button class="reel-action" onclick="shareReel(${post.postId})">
+                    <button class="reel-action" onclick="shareReel(${Number(post.postId)})">
                         <i class="bi bi-send"></i>
                     </button>
                 </div>
@@ -120,14 +123,14 @@ function renderReels() {
             
             <div class="reel-overlay">
                 <div class="reel-author">
-                    <div class="reel-author-avatar">${author[0]}</div>
+                    <div class="reel-author-avatar">${escapeHtml(author[0] || 'С')}</div>
                     <div>
-                        <div style="font-weight:600;font-size:0.9rem">${author}</div>
+                        <div style="font-weight:600;font-size:0.9rem">${safeAuthor}</div>
                         <div style="font-size:0.75rem;opacity:0.75">${new Date(post.createDate).toLocaleDateString('ru-RU')}</div>
                     </div>
                 </div>
-                <div class="reel-title">${post.postTitle}</div>
-                <p class="reel-desc">${(post.postContent || '').substring(0, 100)}${post.postContent && post.postContent.length > 100 ? '...' : ''}</p>
+                <div class="reel-title">${safeTitle}</div>
+                <p class="reel-desc">${escapeHtml((post.postContent || '').substring(0, 100))}${post.postContent && post.postContent.length > 100 ? '...' : ''}</p>
             </div>
         </div>`;
     }).join('');

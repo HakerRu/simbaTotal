@@ -29,7 +29,7 @@ function updateUserMenu(user) {
             <div class="dropdown">
                 <button class="btn btn-outline-light btn-sm rounded-pill px-3 dropdown-toggle" 
                         type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-person-circle"></i> ${user.userFirstName}
+                    <i class="bi bi-person-circle"></i> ${escapeHtml(user.userFirstName)}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile.html">
@@ -105,10 +105,11 @@ function showToast(message, type = 'success') {
     toast.setAttribute('role', 'alert');
     toast.innerHTML = `
         <div class="d-flex">
-            <div class="toast-body">${message}</div>
+            <div class="toast-body"></div>
             <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
+    toast.querySelector('.toast-body').textContent = message;
 
     container.appendChild(toast);
     const bsToast = new bootstrap.Toast(toast);

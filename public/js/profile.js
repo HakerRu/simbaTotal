@@ -32,18 +32,19 @@ function showProfile() {
     const avatar = document.getElementById('profileAvatar');
     const firstName = profileUser.userFirstName || '?';
     const lastName = profileUser.userLastName || '?';
+    const initials = encodeURIComponent(`${firstName[0] || '?'}${lastName[0] || '?'}`);
 
     avatar.src = profileUser.avatarUrl
         ? profileUser.avatarUrl
-        : `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect fill="%23e2e8f0" width="120" height="120"/><text x="60" y="70" text-anchor="middle" fill="%23718096" font-size="40" font-family="sans-serif">${firstName[0]}${lastName[0]}</text></svg>`;
+        : `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect fill="%23e2e8f0" width="120" height="120"/><text x="60" y="70" text-anchor="middle" fill="%23718096" font-size="40" font-family="sans-serif">${initials}</text></svg>`;
 
     document.getElementById('profileName').textContent = `${firstName} ${lastName}`;
 
     const roleMap = { admin: 'Админ', manager: 'Менеджер', doctor: 'Врач', client: 'Клиент' };
     document.getElementById('profileRole').textContent = roleMap[profileUser.role] || profileUser.role || '—';
 
-    document.getElementById('profileEmail').innerHTML = `<i class="bi bi-envelope"></i> ${profileUser.userEmail || '—'}`;
-    document.getElementById('profilePhone').innerHTML = `<i class="bi bi-phone"></i> ${profileUser.userPhone || 'Не указан'}`;
+    document.getElementById('profileEmail').innerHTML = `<i class="bi bi-envelope"></i> ${escapeHtml(profileUser.userEmail || '—')}`;
+    document.getElementById('profilePhone').innerHTML = `<i class="bi bi-phone"></i> ${escapeHtml(profileUser.userPhone || 'Не указан')}`;
 
     // Форма
     document.getElementById('editFirstName').value = profileUser.userFirstName || '';
@@ -79,10 +80,10 @@ async function loadOrders() {
         if (data.success && data.orders.length > 0) {
             document.getElementById('ordersList').innerHTML = data.orders.map(order => `
                 <div class="border-bottom py-2">
-                    <small class="fw-semibold">${order.orderNumber}</small>
+                    <small class="fw-semibold">${escapeHtml(order.orderNumber)}</small>
                     <div class="d-flex justify-content-between">
-                        <small class="text-muted">${new Date(order.pickupDate).toLocaleDateString('ru-RU')} ${order.pickupTime?.substring(0,5)}</small>
-                        <span class="badge bg-${order.orderStatus === 'pending' ? 'warning' : order.orderStatus === 'ready' ? 'info' : order.orderStatus === 'paid' ? 'success' : 'secondary'}">${order.orderStatus}</span>
+                        <small class="text-muted">${new Date(order.pickupDate).toLocaleDateString('ru-RU')} ${escapeHtml(order.pickupTime?.substring(0,5))}</small>
+                        <span class="badge bg-${order.orderStatus === 'pending' ? 'warning' : order.orderStatus === 'ready' ? 'info' : order.orderStatus === 'paid' ? 'success' : 'secondary'}">${escapeHtml(order.orderStatus)}</span>
                     </div>
                     <small class="text-muted">${Number(order.totalAmount).toLocaleString()} ₽</small>
                 </div>

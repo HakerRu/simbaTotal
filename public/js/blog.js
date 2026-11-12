@@ -59,15 +59,16 @@ function renderPosts() {
 
     container.innerHTML = blogState.posts.map(post => {
         const cover = post.media && post.media[0] ? post.media[0] : null;
+        const coverSrc = cover ? safeUrl(cover.mediaUrl) : '';
         const isReel = post.postType === 'reel';
 
         return `
         <div class="col-md-6 col-lg-4">
-            <a href="/post.html?id=${post.postId}" class="text-decoration-none">
+            <a href="/post.html?id=${encodeURIComponent(post.postId)}" class="text-decoration-none">
                 <div class="card blog-card border-0 shadow-sm h-100">
                     <div class="position-relative overflow-hidden" style="height:220px">
-                        ${cover ? `
-                            <img src="${cover.mediaUrl}" class="w-100 h-100" alt="${post.postTitle}" style="object-fit:cover">
+                        ${coverSrc ? `
+                            <img src="${coverSrc}" class="w-100 h-100" alt="${escapeHtml(post.postTitle)}" style="object-fit:cover">
                         ` : `
                             <div class="bg-light d-flex align-items-center justify-content-center h-100">
                                 <i class="bi bi-image text-muted fs-1"></i>
@@ -90,8 +91,8 @@ function renderPosts() {
                                 <i class="bi bi-calendar"></i> ${new Date(post.createDate).toLocaleDateString('ru-RU')}
                             </span>
                         </div>
-                        <h5 class="card-title fw-bold text-dark">${post.postTitle}</h5>
-                        <p class="card-text text-muted small flex-grow-1">${(post.postContent || '').substring(0, 120)}${post.postContent && post.postContent.length > 120 ? '...' : ''}</p>
+                        <h5 class="card-title fw-bold text-dark">${escapeHtml(post.postTitle)}</h5>
+                        <p class="card-text text-muted small flex-grow-1">${escapeHtml((post.postContent || '').substring(0, 120))}${post.postContent && post.postContent.length > 120 ? '...' : ''}</p>
                         <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                             <small class="text-muted"><i class="bi bi-eye"></i> ${post.postViews || 0}</small>
                             <small class="text-primary">Читать <i class="bi bi-arrow-right"></i></small>

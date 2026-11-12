@@ -37,12 +37,12 @@ async function loadService(id) {
             <div class="row g-4 g-lg-5">
                 <div class="col-lg-7">
                     <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">
-                        ${s.categoryName || 'Услуга'}
+                        ${escapeHtml(s.categoryName || 'Услуга')}
                     </span>
-                    <h1 class="fw-bold mb-3">${s.serviceName}</h1>
+                    <h1 class="fw-bold mb-3">${escapeHtml(s.serviceName)}</h1>
                     
                     ${s.serviceDescription ? `
-                        <p class="text-muted mb-4" style="white-space:pre-line">${s.serviceDescription}</p>
+                        <p class="text-muted mb-4" style="white-space:pre-line">${escapeHtml(s.serviceDescription)}</p>
                     ` : ''}
 
                     <div class="row g-3 mb-4">
@@ -83,7 +83,7 @@ async function loadService(id) {
                             <ul class="list-unstyled small mb-0">
                                 <li class="mb-2 d-flex justify-content-between">
                                     <span class="text-muted">Категория:</span>
-                                    <span>${s.categoryName || '—'}</span>
+                                    <span>${escapeHtml(s.categoryName || '—')}</span>
                                 </li>
                                 <li class="mb-2 d-flex justify-content-between">
                                     <span class="text-muted">Длительность:</span>

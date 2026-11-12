@@ -116,6 +116,11 @@ exports.verifyEmail = async (req, res) => {
 
 exports.resendVerification = async (req, res) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, message: errors.array()[0]?.msg || 'Некорректный email', errors: errors.array() });
+        }
+
         const { userEmail } = req.body;
 
         const generic = {
@@ -202,6 +207,53 @@ exports.login = async (req, res) => {
     } catch (error) {
         console.error('Ошибка входа:', error);
         res.status(500).json({ success: false, message: 'Ошибка сервера при входе' });
+    }
+};
+
+exports.refresh = async (req, res) => {
+    try {
+        const token = req.cookies?.refreshToken;
+        if (!token) {
+            clearAuthCookies(res);
+            return res.status(401).json({ success: false, message: 'Требуется авторизация' });
+        }
+
+        const decoded = verifyRefreshToken(token);
+        const user = decoded?.userId ? await User.findById(decoded.userId) : null;
+
+        if (!user || !user.isActive || !user.isEmailVerified) {
+            clearAuthCookies(res);
+            return res.status(401).json({ success: false, message: 'Сессия недействительна' });
+        }
+
+        if (user.role === 'doctor' && user.doctorStatus !== 'approved') {
+            clearAuthCookies(res);
+            return res.status(403).json({ success: false, message: 'Аккаунт врача не одобрен' });
+        }
+
+        if (!user.refreshToken || !user.refreshTokenExpires || new Date(user.refreshTokenExpires) <= new Date()) {
+            clearAuthCookies(res);
+            return res.status(401).json({ success: false, message: 'Сессия истекла' });
+        }
+
+        const incomingHash = Buffer.from(hashToken(token), 'hex');
+        const storedHash = Buffer.from(user.refreshToken, 'hex');
+        if (incomingHash.length !== storedHash.length || !crypto.timingSafeEqual(incomingHash, storedHash)) {
+            clearAuthCookies(res);
+            return res.status(401).json({ success: false, message: 'Сессия недействительна' });
+        }
+
+        const newAccessToken = generateAccessToken(user);
+        const newRefreshToken = generateRefreshToken(user);
+        const refreshTokenExpires = new Date(Date.now() + REFRESH_MAX_AGE);
+
+        await User.updateRefreshToken(user.userId, hashToken(newRefreshToken), refreshTokenExpires);
+        setAuthCookies(res, newAccessToken, newRefreshToken);
+
+        return res.json({ success: true });
+    } catch (error) {
+        clearAuthCookies(res);
+        return res.status(401).json({ success: false, message: 'Сессия истекла' });
     }
 };
 

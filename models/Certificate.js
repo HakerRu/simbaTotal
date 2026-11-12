@@ -10,11 +10,10 @@ class Certificate {
         return result.rows;
     }
 
-    static async getById(certificateId) {
-        const result = await db.query(
-            'SELECT * FROM certificates WHERE "certificateId" = $1',
-            [certificateId]
-        );
+    static async getById(certificateId, { publishedOnly = true } = {}) {
+        let query = 'SELECT * FROM certificates WHERE "certificateId" = $1';
+        if (publishedOnly) query += ' AND "isPublished" = true';
+        const result = await db.query(query, [certificateId]);
         return result.rows[0];
     }
 

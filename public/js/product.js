@@ -43,8 +43,8 @@ async function loadProduct(id) {
                 <!-- Фото -->
                 <div class="col-lg-6">
                     <div class="product-image-wrapper rounded-4 overflow-hidden shadow-sm bg-light" style="aspect-ratio:1">
-                        ${p.mainImage ? `
-                            <img src="${p.mainImage}" alt="${p.productName}" class="w-100 h-100" style="object-fit:cover">
+                        ${safeUrl(p.mainImage) ? `
+                            <img src="${safeUrl(p.mainImage)}" alt="${escapeHtml(p.productName)}" class="w-100 h-100" style="object-fit:cover">
                         ` : `
                             <div class="d-flex align-items-center justify-content-center h-100">
                                 <i class="bi bi-image text-muted" style="font-size:6rem"></i>
@@ -56,10 +56,10 @@ async function loadProduct(id) {
                 <!-- Инфа -->
                 <div class="col-lg-6">
                     ${p.categoryName ? `
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">${p.categoryName}</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">${escapeHtml(p.categoryName)}</span>
                     ` : ''}
                     
-                    <h1 class="fw-bold mb-3">${p.productName}</h1>
+                    <h1 class="fw-bold mb-3">${escapeHtml(p.productName)}</h1>
                     
                     <div class="d-flex align-items-center gap-3 mb-3">
                         ${hasDiscount ? `
@@ -85,7 +85,7 @@ async function loadProduct(id) {
 
                     ${p.productDescription ? `
                         <h6 class="fw-bold mt-4 mb-2">Описание</h6>
-                        <p class="text-muted" style="white-space:pre-line">${p.productDescription}</p>
+                        <p class="text-muted" style="white-space:pre-line">${escapeHtml(p.productDescription)}</p>
                     ` : ''}
 
                     ${inStock ? `
@@ -157,7 +157,7 @@ function setupProductEvents(productId, maxStock) {
                 updateCartCount();
             }
         } catch (e) {
-            if (e.message.includes('401') || e.message.includes('авториз') || e.message.includes('Требуется')) {
+            if (e.status === 401 || e.message.includes('401') || e.message.includes('авториз') || e.message.includes('Требуется')) {
                 showToast('Войдите чтобы добавить в корзину', 'danger');
                 setTimeout(() => window.location.href = '/login.html', 1000);
             } else {

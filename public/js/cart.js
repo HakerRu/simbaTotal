@@ -34,8 +34,8 @@ async function loadCart() {
                             <div class="card-body p-3">
                                 <div class="row align-items-center g-3">
                                     <div class="col-3 col-md-2">
-                                        ${item.mainImage ? `
-                                            <img src="${item.mainImage}" class="rounded-3 w-100" style="height:70px;object-fit:cover" alt="">
+                                        ${safeUrl(item.mainImage) ? `
+                                            <img src="${safeUrl(item.mainImage)}" class="rounded-3 w-100" style="height:70px;object-fit:cover" alt="">
                                         ` : `
                                             <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="height:70px">
                                                 <i class="bi bi-image text-muted fs-3"></i>
@@ -43,7 +43,7 @@ async function loadCart() {
                                         `}
                                     </div>
                                     <div class="col-9 col-md-4">
-                                        <h6 class="fw-bold mb-0">${item.productName}</h6>
+                                        <h6 class="fw-bold mb-0">${escapeHtml(item.productName)}</h6>
                                         <small class="text-muted">${Number(item.productDiscountPrice || item.productPrice).toLocaleString()} ₽ / шт</small>
                                     </div>
                                     <div class="col-6 col-md-3">
@@ -96,7 +96,7 @@ async function loadCart() {
 
         setupCartEvents(data.items);
     } catch (e) {
-        if (e.message.includes('401') || e.message.includes('авториз')) {
+        if (e.status === 401 || e.message.includes('401') || e.message.includes('авториз') || e.message.includes('Требуется')) {
             container.innerHTML = `
                 <div class="text-center py-5">
                     <i class="bi bi-person-lock display-1 text-muted"></i>

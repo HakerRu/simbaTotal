@@ -43,10 +43,10 @@ function renderCategories() {
         categories.forEach(cat => {
             const padding = level * 16;
             html += `
-                <a href="#" class="list-group-item list-group-item-action border-0 rounded-3 mb-1 ${shopState.activeCategory === cat.categoryId ? 'active' : ''}" 
-                   data-category="${cat.categoryId}" style="padding-left:${16 + padding}px">
+                <a href="#" class="list-group-item list-group-item-action border-0 rounded-3 mb-1 ${String(shopState.activeCategory) === String(cat.categoryId) ? 'active' : ''}" 
+                   data-category="${escapeHtml(cat.categoryId)}" style="padding-left:${16 + padding}px">
                     ${level > 0 ? '<i class="bi bi-arrow-return-right me-1 small"></i>' : '<i class="bi bi-folder me-1"></i>'}
-                    ${cat.categoryName}
+                    ${escapeHtml(cat.categoryName)}
                 </a>`;
 
             if (cat.children && cat.children.length > 0) {
@@ -117,9 +117,9 @@ function renderProducts() {
     container.innerHTML = shopState.products.map(product => `
     <div class="col-6 col-md-4">
         <div class="card product-card border-0 shadow-sm h-100">
-            <a href="/product.html?id=${product.productId}" class="text-decoration-none position-relative overflow-hidden d-block" style="height:200px">
-                ${product.mainImage ? `
-                    <img src="${product.mainImage}" class="w-100 h-100" alt="${product.productName}" style="object-fit:cover">
+            <a href="/product.html?id=${encodeURIComponent(product.productId)}" class="text-decoration-none position-relative overflow-hidden d-block" style="height:200px">
+                ${safeUrl(product.mainImage) ? `
+                    <img src="${safeUrl(product.mainImage)}" class="w-100 h-100" alt="${escapeHtml(product.productName)}" style="object-fit:cover">
                 ` : `
                     <div class="bg-light d-flex align-items-center justify-content-center h-100">
                         <i class="bi bi-image text-muted fs-1"></i>
@@ -135,11 +135,11 @@ function renderProducts() {
                 ` : ''}
             </a>
             <div class="card-body d-flex flex-column">
-                <span class="badge bg-primary bg-opacity-10 text-primary mb-2 align-self-start">${product.categoryName || 'Товар'}</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-2 align-self-start">${escapeHtml(product.categoryName || 'Товар')}</span>
                 <h6 class="card-title fw-bold">
-                    <a href="/product.html?id=${product.productId}" class="text-decoration-none text-dark">${product.productName}</a>
+                    <a href="/product.html?id=${encodeURIComponent(product.productId)}" class="text-decoration-none text-dark">${escapeHtml(product.productName)}</a>
                 </h6>
-                <p class="card-text text-muted small flex-grow-1 d-none d-md-block">${(product.productDescription || '').substring(0, 80)}...</p>
+                <p class="card-text text-muted small flex-grow-1 d-none d-md-block">${escapeHtml((product.productDescription || '').substring(0, 80))}...</p>
                 <div class="mt-auto">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         ${product.productDiscountPrice ? `
@@ -179,8 +179,8 @@ async function addToCart(productId) {
             updateCartCount();
         }
     } catch (e) {
-        if (e.message.includes('401') || e.message.includes('авториз')) {
-            window.location.href = '../login.html';
+        if (e.status === 401 || e.message.includes('401') || e.message.includes('авториз')) {
+            window.location.href = '/login.html';
         } else {
             showToast(e.message || 'Ошибка', 'danger');
         }

@@ -56,15 +56,16 @@ class Post {
         const result = await db.query(query, values);
         return parseInt(result.rows[0].total);
     }
-    static async getById(postId) {
-        const result = await db.query(
-            `SELECT p.*, 
+    static async getById(postId, { publishedOnly = true } = {}) {
+        let query = `SELECT p.*, 
              u."userFirstName" as "authorFirstName", u."userLastName" as "authorLastName"
              FROM posts p
              LEFT JOIN users u ON p."authorId" = u."userId"
-             WHERE p."postId" = $1`,
-            [postId]
-        );
+             WHERE p."postId" = $1`;
+        if (publishedOnly) {
+            query += ` AND p."isPublished" = true`;
+        }
+        const result = await db.query(query, [postId]);
 
         if (!result.rows[0]) return null;
 
@@ -76,8 +77,8 @@ class Post {
         post.media = mediaResult.rows;
         return post;
     }
+
     static async toggleLike(postId, userId, ip) {
-        // Проверяем есть ли лайк
         let existing;
         if (userId) {
             existing = await db.query(
@@ -86,21 +87,19 @@ class Post {
             );
         } else {
             existing = await db.query(
-                'SELECT * FROM post_likes WHERE "postId" = $1 AND "ipAddress" = $2',
+                'SELECT * FROM post_likes WHERE "postId" = $1 AND "userId" IS NULL AND "ipAddress" = $2',
                 [postId, ip]
             );
         }
 
         if (existing.rows.length > 0) {
-            // Удаляем
             if (userId) {
                 await db.query('DELETE FROM post_likes WHERE "postId" = $1 AND "userId" = $2', [postId, userId]);
             } else {
-                await db.query('DELETE FROM post_likes WHERE "postId" = $1 AND "ipAddress" = $2', [postId, ip]);
+                await db.query('DELETE FROM post_likes WHERE "postId" = $1 AND "userId" IS NULL AND "ipAddress" = $2', [postId, ip]);
             }
             return { liked: false };
         } else {
-            // Добавляем
             await db.query(
                 'INSERT INTO post_likes ("postId", "userId", "ipAddress") VALUES ($1, $2, $3)',
                 [postId, userId || null, ip]
@@ -111,10 +110,23 @@ class Post {
 
     static async getLikesCount(postId) {
         const result = await db.query(
-            'SELECT COUNT(*) as count FROM post_likes WHERE "postId" = $1',
+            'SELECT COUNT(*)::int as count FROM post_likes WHERE "postId" = $1',
             [postId]
         );
-        return parseInt(result.rows[0].count);
+        return result.rows[0].count;
+    }
+
+    static async getLikesCounts(postIds) {
+        if (!postIds || postIds.length === 0) return {};
+        const result = await db.query(
+            'SELECT "postId", COUNT(*)::int as count FROM post_likes WHERE "postId" = ANY($1) GROUP BY "postId"',
+            [postIds]
+        );
+        const counts = {};
+        for (const row of result.rows) {
+            counts[row.postId] = row.count;
+        }
+        return counts;
     }
 
     static async getLikedPostIds(userId, ip, postIds) {
@@ -128,7 +140,7 @@ class Post {
             );
         } else {
             result = await db.query(
-                'SELECT "postId" FROM post_likes WHERE "ipAddress" = $1 AND "postId" = ANY($2)',
+                'SELECT "postId" FROM post_likes WHERE "userId" IS NULL AND "ipAddress" = $1 AND "postId" = ANY($2)',
                 [ip, postIds]
             );
         }
@@ -196,6 +208,11 @@ class Post {
         }
 
         return await this.getById(postId);
+    }
+
+    static async getMediaKeys(postId) {
+        const result = await db.query('SELECT "mediaKey" FROM post_media WHERE "postId" = $1 AND "mediaKey" IS NOT NULL', [postId]);
+        return result.rows.map((r) => r.mediaKey);
     }
 
     static async delete(postId) {

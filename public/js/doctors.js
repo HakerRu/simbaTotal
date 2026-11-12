@@ -25,13 +25,16 @@ function renderDoctors(doctors) {
         return;
     }
 
-    container.innerHTML = doctors.map(doc => `
+    container.innerHTML = doctors.map(doc => {
+        const fullName = escapeHtml(`${doc.userFirstName || ''} ${doc.userLastName || ''}`.trim());
+        const avatarSrc = safeUrl(doc.avatarUrl);
+        return `
         <div class="col-md-6 col-lg-4">
-            <a href="/doctor.html?id=${doc.userId}" class="text-decoration-none">
+            <a href="/doctor.html?id=${encodeURIComponent(doc.userId)}" class="text-decoration-none">
                 <div class="card doctor-card border-0 shadow-sm h-100 text-center p-4">
                     <div class="doctor-avatar-wrapper mx-auto mb-3">
-                        ${doc.avatarUrl ? `
-                            <img src="${doc.avatarUrl}" alt="${doc.userFirstName} ${doc.userLastName}" class="doctor-avatar">
+                        ${avatarSrc ? `
+                            <img src="${avatarSrc}" alt="${fullName}" class="doctor-avatar">
                         ` : `
                             <div class="doctor-avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center">
                                 <i class="bi bi-person-fill text-primary fs-1"></i>
@@ -39,20 +42,20 @@ function renderDoctors(doctors) {
                         `}
                     </div>
                     
-                    <h5 class="fw-bold mb-1 text-dark">${doc.userFirstName} ${doc.userLastName}</h5>
+                    <h5 class="fw-bold mb-1 text-dark">${fullName}</h5>
                     
                     ${doc.doctorSpecialization ? `
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">${doc.doctorSpecialization}</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">${escapeHtml(doc.doctorSpecialization)}</span>
                     ` : ''}
                     
                     ${doc.doctorExperienceYears ? `
                         <p class="text-muted small mb-2">
-                            <i class="bi bi-briefcase"></i> Стаж: ${doc.doctorExperienceYears} ${getYearWord(doc.doctorExperienceYears)}
+                            <i class="bi bi-briefcase"></i> Стаж: ${escapeHtml(doc.doctorExperienceYears)} ${getYearWord(doc.doctorExperienceYears)}
                         </p>
                     ` : ''}
                     
                     ${doc.doctorDescription ? `
-                        <p class="text-muted small mb-3">${doc.doctorDescription.substring(0, 120)}...</p>
+                        <p class="text-muted small mb-3">${escapeHtml(doc.doctorDescription.substring(0, 120))}...</p>
                     ` : ''}
                     
                     <div class="mt-auto">
@@ -63,7 +66,8 @@ function renderDoctors(doctors) {
                 </div>
             </a>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function getYearWord(years) {

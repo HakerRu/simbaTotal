@@ -17,7 +17,15 @@ exports.getUsers = async (req, res) => {
 
 exports.updateUserStatus = async (req, res) => {
     try {
+        if (String(req.params.id) === String(req.user.userId) && req.body.isActive === false) {
+            return res.status(400).json({ success: false, message: 'Нельзя деактивировать собственный аккаунт' });
+        }
+
         const user = await User.updateStatus(req.params.id, req.body);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Пользователь не найден или нечего обновлять' });
+        }
+
         res.json({ success: true, user });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });

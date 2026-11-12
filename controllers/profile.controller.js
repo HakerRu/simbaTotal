@@ -1,18 +1,17 @@
 const User = require('../models/User');
 const { uploadToS3, deleteFromS3 } = require('../utils/s3');
+const { DOCTOR_PROFILE_FIELDS, pickProfileFields } = require('./doctors.controller');
+
+const BASIC_PROFILE_FIELDS = ['userFirstName', 'userLastName', 'userPhone'];
 
 exports.updateProfile = async (req, res) => {
     try {
-        const updateData = {
-            userFirstName: req.body.userFirstName,
-            userLastName: req.body.userLastName,
-            userPhone: req.body.userPhone,
-            // ... остальные поля
-        };
+        const allowed = req.user.role === 'doctor' ? DOCTOR_PROFILE_FIELDS : BASIC_PROFILE_FIELDS;
+        const updateData = pickProfileFields(req.body, allowed);
 
-        Object.keys(updateData).forEach(key =>
-            updateData[key] === undefined && delete updateData[key]
-        );
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ success: false, message: 'Нет данных для обновления' });
+        }
 
         const user = await User.updateProfile(req.user.userId, updateData);
 

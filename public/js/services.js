@@ -31,7 +31,7 @@ function renderCategoryButtons() {
     let html = '<button class="btn btn-primary rounded-pill px-4 active" data-category="all">Все услуги</button>';
 
     servicesState.categories.forEach(cat => {
-        html += `<button class="btn btn-outline-primary rounded-pill px-4" data-category="${cat.categoryId}">${cat.categoryName}</button>`;
+        html += `<button class="btn btn-outline-primary rounded-pill px-4" data-category="${escapeHtml(cat.categoryId)}">${escapeHtml(cat.categoryName)}</button>`;
     });
 
     container.innerHTML = html;
@@ -100,11 +100,11 @@ function renderServices() {
                             <i class="bi ${getIcon(service.serviceName)} fs-4 text-primary"></i>
                         </div>
                         <div>
-                            <h5 class="card-title fw-bold mb-1 text-dark">${service.serviceName}</h5>
-                            <span class="badge bg-primary bg-opacity-10 text-primary">${service.categoryName || 'Услуга'}</span>
+                            <h5 class="card-title fw-bold mb-1 text-dark">${escapeHtml(service.serviceName)}</h5>
+                            <span class="badge bg-primary bg-opacity-10 text-primary">${escapeHtml(service.categoryName || 'Услуга')}</span>
                         </div>
                     </div>
-                    <p class="card-text text-muted small mb-3">${(service.serviceDescription || 'Описание уточняется').substring(0, 120)}...</p>
+                    <p class="card-text text-muted small mb-3">${escapeHtml((service.serviceDescription || 'Описание уточняется').substring(0, 120))}...</p>
                     <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                         <div>
                             <span class="fw-bold fs-5 text-primary">${Number(service.servicePrice).toLocaleString()} ₽</span>

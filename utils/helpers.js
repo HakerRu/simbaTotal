@@ -7,19 +7,40 @@ const generateOrderNumber = () => {
     return `SB-${yearMonth}-${random}`;
 };
 
+const CYRILLIC_MAP = {
+    а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'zh',
+    з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o',
+    п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'kh', ц: 'ts',
+    ч: 'ch', ш: 'sh', щ: 'shch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya'
+};
+
+const transliterate = (text) => {
+    return String(text)
+        .toLowerCase()
+        .split('')
+        .map((ch) => (Object.prototype.hasOwnProperty.call(CYRILLIC_MAP, ch) ? CYRILLIC_MAP[ch] : ch))
+        .join('');
+};
+
 const slugify = (text) => {
     if (!text || text.trim() === '') {
         return 'item-' + Date.now();
     }
-    return text
-        .toString()
-        .toLowerCase()
+    const slug = transliterate(text)
         .trim()
         .replace(/\s+/g, '-')
         .replace(/[^\w\-]+/g, '')
         .replace(/\-\-+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
+
+    return slug || 'item-' + Date.now();
+};
+
+const uniqueSlug = (text, fallbackPrefix = 'item') => {
+    const base = text && text.trim() ? slugify(text) : fallbackPrefix;
+    const suffix = `${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
+    return `${base}-${suffix}`;
 };
 
 const formatDate = (date) => {
@@ -47,6 +68,7 @@ const generateTimeSlots = (startHour, endHour, intervalMinutes) => {
 module.exports = {
     generateOrderNumber,
     slugify,
+    uniqueSlug,
     formatDate,
     generateTimeSlots,
 };

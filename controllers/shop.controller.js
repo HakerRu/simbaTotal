@@ -2,7 +2,11 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
-const { slugify, generateOrderNumber } = require('../utils/helpers');
+const { uniqueSlug, generateOrderNumber } = require('../utils/helpers');
+const { deleteManyFromS3 } = require('../utils/s3');
+
+const ALLOWED_ORDER_STATUSES = new Set(['pending', 'ready', 'paid', 'cancelled']);
+const isStaff = (req) => Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'manager'));
 
 const invalidNumber = (value) => {
     const n = Number(value);
@@ -12,8 +16,10 @@ const invalidNumber = (value) => {
 // ==================== ТОВАРЫ ====================
 exports.getProducts = async (req, res) => {
     try {
-        const { category = 'all', sort = 'default', search = '', page = 1, limit = 9 } = req.query;
-        const products = await Product.getAll({ category, sort, search, page: parseInt(page), limit: parseInt(limit) });
+        const { category = 'all', sort = 'default', search = '' } = req.query;
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 9));
+        const products = await Product.getAll({ category, sort, search, page, limit });
         const total = await Product.getTotal({ category, search });
 
         res.json({ success: true, products, total });
@@ -25,7 +31,7 @@ exports.getProducts = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
     try {
-        const product = await Product.getById(req.params.id);
+        const product = await Product.getById(req.params.id, { activeOnly: !isStaff(req) });
         if (!product) return res.status(404).json({ success: false, message: 'Товар не найден' });
         res.json({ success: true, product });
     } catch (e) {
@@ -46,7 +52,7 @@ exports.createProduct = async (req, res) => {
 
         const product = await Product.create({
             productName: req.body.productName,
-            productSlug: slugify(req.body.productName),
+            productSlug: uniqueSlug(req.body.productName, 'product'),
             productDescription: req.body.productDescription,
             productPrice: Number(req.body.productPrice),
             productDiscountPrice: discount === '' || discount === undefined ? null : discount,
@@ -76,14 +82,23 @@ exports.updateProduct = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Некорректная скидка' });
         }
 
-        const product = await Product.update(req.params.id, req.body);
+        let oldKeys = [];
+        if (req.body.images !== undefined) {
+            oldKeys = await Product.getImageKeys(req.params.id);
+        }
 
-        // Если передали новые фото — заменяем
+        const product = await Product.update(req.params.id, req.body);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Товар не найден' });
+        }
+
         if (req.body.images !== undefined) {
             await Product.deleteImages(req.params.id);
             if (req.body.images.length > 0) {
                 await Product.addImages(req.params.id, req.body.images);
             }
+            const newKeys = new Set((req.body.images || []).map((img) => img.key).filter(Boolean));
+            await deleteManyFromS3(oldKeys.filter((k) => !newKeys.has(k)));
         }
 
         res.json({ success: true, product });
@@ -94,7 +109,9 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     try {
+        const keys = await Product.getImageKeys(req.params.id);
         await Product.delete(req.params.id);
+        await deleteManyFromS3(keys);
         res.json({ success: true, message: 'Товар удалён' });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка удаления' });
@@ -106,7 +123,7 @@ exports.createCategory = async (req, res) => {
     try {
         const category = await Category.create({
             categoryName: req.body.categoryName,
-            categorySlug: slugify(req.body.categoryName) + '-' + Date.now(),
+            categorySlug: uniqueSlug(req.body.categoryName, 'cat'),
             categoryDescription: req.body.categoryDescription,
             parentId: req.body.parentId || null
         });
@@ -121,10 +138,13 @@ exports.updateCategory = async (req, res) => {
     try {
         const category = await Category.update(req.params.id, {
             categoryName: req.body.categoryName,
-            categorySlug: slugify(req.body.categoryName) + '-' + Date.now(),
+            categorySlug: uniqueSlug(req.body.categoryName, 'cat'),
             categoryDescription: req.body.categoryDescription,
             parentId: req.body.parentId || null
         });
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Категория не найдена' });
+        }
         res.json({ success: true, category });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });
@@ -174,10 +194,23 @@ exports.getCartCount = async (req, res) => {
 exports.addToCart = async (req, res) => {
     try {
         const quantity = parseInt(req.body.quantity ?? 1, 10);
-        if (!req.body.productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+        const productId = req.body.productId;
+        if (!productId || !/^\d+$/.test(String(productId)) || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
             return res.status(400).json({ success: false, message: 'Некорректное количество' });
         }
-        const item = await Cart.addItem(req.user.userId, req.body.productId, quantity);
+
+        const product = await Product.getById(productId, { activeOnly: true });
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Товар не найден' });
+        }
+
+        const existing = await Cart.getItem(req.user.userId, productId);
+        const desiredTotal = (existing?.quantity || 0) + quantity;
+        if (desiredTotal > product.stockQuantity) {
+            return res.status(400).json({ success: false, message: `Доступно на складе: ${product.stockQuantity} шт.` });
+        }
+
+        const item = await Cart.addItem(req.user.userId, productId, quantity);
         const count = await Cart.getCount(req.user.userId);
         res.json({ success: true, item, count });
     } catch (e) {
@@ -191,7 +224,19 @@ exports.updateCartItem = async (req, res) => {
         if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
             return res.status(400).json({ success: false, message: 'Некорректное количество' });
         }
+
+        const product = await Product.getById(req.params.productId, { activeOnly: true });
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Товар не найден' });
+        }
+        if (quantity > product.stockQuantity) {
+            return res.status(400).json({ success: false, message: `Доступно на складе: ${product.stockQuantity} шт.` });
+        }
+
         const item = await Cart.updateQuantity(req.user.userId, req.params.productId, quantity);
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Товар не найден в корзине' });
+        }
         const count = await Cart.getCount(req.user.userId);
         res.json({ success: true, item, count });
     } catch (e) {
@@ -227,20 +272,10 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Заполните все поля' });
         }
 
-        const cartItems = await Cart.getItems(req.user.userId);
-        if (cartItems.length === 0) {
-            return res.status(400).json({ success: false, message: 'Корзина пуста' });
+        const todayLocal = new Date().toLocaleDateString('en-CA');
+        if (pickupDate < todayLocal) {
+            return res.status(400).json({ success: false, message: 'Дата самовывоза не может быть в прошлом' });
         }
-
-        const slotCount = await Order.countBySlot(pickupDate, pickupTime);
-        if (slotCount >= 4) {
-            return res.status(400).json({ success: false, message: 'Это время уже занято, выберите другое' });
-        }
-
-        const totalAmount = cartItems.reduce((sum, item) => {
-            const price = item.productDiscountPrice || item.productPrice;
-            return sum + (price * item.quantity);
-        }, 0);
 
         const orderNumber = generateOrderNumber();
 
@@ -251,18 +286,14 @@ exports.createOrder = async (req, res) => {
             customerPhone,
             pickupDate,
             pickupTime,
-            totalAmount,
-            orderNotes,
-            items: cartItems.map(i => ({
-                productId: i.productId,
-                productName: i.productName,
-                quantity: i.quantity,
-                price: i.productDiscountPrice || i.productPrice
-            }))
+            orderNotes
         });
 
         res.status(201).json({ success: true, order });
     } catch (e) {
+        if (e instanceof Order.HttpError) {
+            return res.status(e.status).json({ success: false, message: e.message });
+        }
         console.error('Ошибка создания заказа:', e);
         res.status(500).json({ success: false, message: 'Ошибка создания заказа' });
     }
@@ -303,9 +334,20 @@ exports.getAllOrders = async (req, res) => {
 
 exports.updateOrderStatus = async (req, res) => {
     try {
-        const order = await Order.updateStatus(req.params.id, req.body.orderStatus);
+        const { orderStatus } = req.body;
+        if (!ALLOWED_ORDER_STATUSES.has(orderStatus)) {
+            return res.status(400).json({ success: false, message: 'Недопустимый статус заказа' });
+        }
+
+        const order = await Order.updateStatus(req.params.id, orderStatus);
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Заказ не найден' });
+        }
         res.json({ success: true, order });
     } catch (e) {
+        if (e instanceof Order.HttpError) {
+            return res.status(e.status).json({ success: false, message: e.message });
+        }
         res.status(500).json({ success: false, message: 'Ошибка обновления' });
     }
 };
@@ -326,7 +368,9 @@ exports.addProductImages = async (req, res) => {
 
 exports.deleteProductImages = async (req, res) => {
     try {
+        const keys = await Product.getImageKeys(req.params.id);
         await Product.deleteImages(req.params.id);
+        await deleteManyFromS3(keys);
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка' });
@@ -344,8 +388,23 @@ exports.deleteOrder = async (req, res) => {
 exports.checkSlot = async (req, res) => {
     try {
         const { date, time } = req.query;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date)) || !/^([01]\d|2[0-3]):([0-5]\d)$/.test(String(time))) {
+            return res.status(400).json({ success: false, message: 'Некорректная дата или время' });
+        }
         const count = await Order.countBySlot(date, time);
         res.json({ success: true, available: count < 4, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка' });
+    }
+};
+exports.getSlotsByDate = async (req, res) => {
+    try {
+        const { date } = req.query;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date))) {
+            return res.status(400).json({ success: false, message: 'Некорректная дата' });
+        }
+        const slots = await Order.countSlotsByDate(date);
+        res.json({ success: true, slots, maxPerSlot: 4 });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка' });
     }
