@@ -50,7 +50,7 @@ exports.createAlbum = async (req, res) => {
         res.status(201).json({ success: true, album });
     } catch (e) {
         console.error('Ошибка создания альбома:', e);
-        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 };
 

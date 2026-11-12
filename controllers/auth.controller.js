@@ -1,10 +1,23 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken, hashToken } = require('../utils/jwt');
 const { sendVerificationEmail } = require('../utils/mailer');
+const { cookieOptions } = require('../utils/cookies');
+
+const ACCESS_MAX_AGE = 15 * 60 * 1000;
+const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+const setAuthCookies = (res, accessToken, refreshToken) => {
+    res.cookie('accessToken', accessToken, cookieOptions(ACCESS_MAX_AGE));
+    res.cookie('refreshToken', refreshToken, cookieOptions(REFRESH_MAX_AGE));
+};
+
+const clearAuthCookies = (res) => {
+    res.clearCookie('accessToken', cookieOptions());
+    res.clearCookie('refreshToken', cookieOptions());
+};
 
 exports.register = async (req, res) => {
     try {
@@ -14,10 +27,11 @@ exports.register = async (req, res) => {
         }
 
         const { userEmail, userPassword, userFirstName, userLastName, userPhone, role } = req.body;
+        const safeRole = role === 'doctor' ? 'doctor' : 'client';
 
         const existingUser = await User.findByEmail(userEmail);
         if (existingUser) {
-            return res.status(400).json({ success: false, message: 'Пользователь с таким email уже существует' });
+            return res.status(400).json({ success: false, message: 'Не удалось зарегистрироваться. Проверьте данные или войдите.' });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -32,8 +46,8 @@ exports.register = async (req, res) => {
             userFirstName,
             userLastName,
             userPhone: userPhone || null,
-            role: role || 'client',
-            doctorStatus: role === 'doctor' ? 'pending' : null,
+            role: safeRole,
+            doctorStatus: safeRole === 'doctor' ? 'pending' : null,
             isEmailVerified: false,
             emailVerificationToken: verificationToken,
             emailVerificationExpires: verificationExpires
@@ -87,20 +101,9 @@ exports.verifyEmail = async (req, res) => {
             const refreshToken = generateRefreshToken(user);
             const refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-            await User.updateRefreshToken(user.userId, refreshToken, refreshTokenExpires);
+            await User.updateRefreshToken(user.userId, hashToken(refreshToken), refreshTokenExpires);
             await User.updateLastLogin(user.userId);
-
-            res.cookie('accessToken', accessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 15 * 60 * 1000
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 7 * 24 * 60 * 60 * 1000
-            });
+            setAuthCookies(res, accessToken, refreshToken);
         }
 
         res.redirect(`/register.html?verified=true&role=${user.role}`);
@@ -115,13 +118,14 @@ exports.resendVerification = async (req, res) => {
     try {
         const { userEmail } = req.body;
 
-        const user = await User.findByEmail(userEmail);
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'Пользователь не найден' });
-        }
+        const generic = {
+            success: true,
+            message: 'Если аккаунт существует и email не подтверждён, письмо отправлено'
+        };
 
-        if (user.isEmailVerified) {
-            return res.status(400).json({ success: false, message: 'Email уже подтверждён' });
+        const user = await User.findByEmail(userEmail);
+        if (!user || user.isEmailVerified) {
+            return res.json(generic);
         }
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -131,12 +135,9 @@ exports.resendVerification = async (req, res) => {
 
         const emailResult = await sendVerificationEmail(userEmail, user.userFirstName, verificationToken);
 
-        res.json({
-            success: true,
-            message: emailResult.success
-                ? 'Письмо с подтверждением отправлено повторно'
-                : 'Не удалось отправить письмо, попробуйте позже'
-        });
+        res.json(emailResult.success
+            ? generic
+            : { success: false, message: 'Не удалось отправить письмо, попробуйте позже' });
 
     } catch (error) {
         console.error('Ошибка повторной отправки:', error);
@@ -146,48 +147,8 @@ exports.resendVerification = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        console.log(req.body)
         const { userEmail, userPassword } = req.body;
 
-        // Хардкод-админ — проверяем ДО валидации
-        if ((userEmail === '@admin' || userEmail === 'admin') && userPassword === 'simba2024') {
-            const accessToken = jwt.sign(
-                { userId: 0, email: 'admin', role: 'admin' },
-                process.env.JWT_ACCESS_SECRET,
-                { expiresIn: process.env.JWT_ACCESS_EXPIRES }
-            );
-            const refreshToken = jwt.sign(
-                { userId: 0, email: 'admin', role: 'admin' },
-                process.env.JWT_REFRESH_SECRET,
-                { expiresIn: process.env.JWT_REFRESH_EXPIRES }
-            );
-
-            res.cookie('accessToken', accessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 15 * 60 * 1000
-            });
-
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 7 * 24 * 60 * 60 * 1000
-            });
-
-            return res.json({
-                success: true,
-                message: 'Вход выполнен успешно',
-                user: {
-                    userId: 0,
-                    userEmail: 'admin',
-                    userFirstName: 'Администратор',
-                    userLastName: 'Симба',
-                    role: 'admin'
-                }
-            });
-        }
-
-        // Валидация для обычных пользователей
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ success: false, message: 'Ошибка валидации', errors: errors.array() });
@@ -220,20 +181,9 @@ exports.login = async (req, res) => {
         const refreshToken = generateRefreshToken(user);
         const refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-        await User.updateRefreshToken(user.userId, refreshToken, refreshTokenExpires);
+        await User.updateRefreshToken(user.userId, hashToken(refreshToken), refreshTokenExpires);
         await User.updateLastLogin(user.userId);
-
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 15 * 60 * 1000
-        });
-
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        setAuthCookies(res, accessToken, refreshToken);
 
         res.json({
             success: true,
@@ -261,42 +211,23 @@ exports.logout = async (req, res) => {
         if (token) {
             try {
                 const decoded = verifyRefreshToken(token);
-                if (decoded.userId !== 0) {
+                if (decoded.userId) {
                     await User.removeRefreshToken(decoded.userId);
                 }
             } catch (e) {}
         }
 
-        res.clearCookie('accessToken');
-        res.clearCookie('refreshToken');
+        clearAuthCookies(res);
 
         res.json({ success: true, message: 'Выход выполнен успешно' });
     } catch (error) {
-        res.clearCookie('accessToken');
-        res.clearCookie('refreshToken');
+        clearAuthCookies(res);
         res.json({ success: true, message: 'Выход выполнен успешно' });
     }
 };
 
 exports.getMe = async (req, res) => {
     try {
-        // Хардкод-админ
-        if (req.user.userId === 0) {
-            return res.json({
-                success: true,
-                user: {
-                    userId: 0,
-                    userEmail: 'admin',
-                    userFirstName: 'Администратор',
-                    userLastName: 'Симба',
-                    role: 'admin',
-                    avatarUrl: null,
-                    userPhone: null,
-                    isEmailVerified: true
-                }
-            });
-        }
-
         const user = await User.findById(req.user.userId);
         if (!user) {
             return res.status(404).json({ success: false, message: 'Пользователь не найден' });

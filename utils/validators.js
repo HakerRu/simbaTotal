@@ -15,6 +15,9 @@ const registerValidator = [
     body('userPhone')
         .optional({ checkFalsy: true })
         .matches(/^\+?[0-9\s\-\(\)]{7,20}$/).withMessage('Некорректный номер телефона'),
+    body('role')
+        .optional({ nullable: true })
+        .isIn(['client', 'doctor']).withMessage('Некорректная роль'),
 ];
 
 const loginValidator = [

@@ -1,6 +1,19 @@
 const db = require('../database/db');
 
 class User {
+    static toPublic(user) {
+        if (!user) return null;
+        const {
+            userPassword,
+            refreshToken,
+            refreshTokenExpires,
+            emailVerificationToken,
+            emailVerificationExpires,
+            ...safe
+        } = user;
+        return safe;
+    }
+
     static async findByEmail(email) {
         const result = await db.query('SELECT * FROM users WHERE "userEmail" = $1', [email]);
         return result.rows[0];
@@ -107,7 +120,7 @@ class User {
 
         const query = `UPDATE users SET ${updates.join(', ')} WHERE "userId" = $${paramCount} RETURNING *`;
         const result = await db.query(query, values);
-        return result.rows[0];
+        return this.toPublic(result.rows[0]);
     }
 
     static async getAll(filters = {}) {
@@ -136,14 +149,29 @@ class User {
         query += ` ORDER BY "createDate" DESC`;
 
         const result = await db.query(query, values);
-        return result.rows;
+        return result.rows.map((row) => this.toPublic(row));
+    }
+
+    static async findPublicDoctor(userId) {
+        const result = await db.query(
+            `SELECT "userId", "userFirstName", "userLastName", "avatarUrl",
+             "doctorSpecialization", "doctorDescription", "doctorExperienceYears",
+             "doctorEducation", "vkLink", "telegramLink", "doctorPortfolio",
+             "doctorCertificatesList", "doctorServices", "doctorStatusText",
+             "doctorInstagram", "doctorWhatsapp", "doctorRating"
+             FROM users
+             WHERE "userId" = $1 AND role = 'doctor'
+               AND "doctorStatus" = 'approved' AND "isActive" = true AND "isEmailVerified" = true`,
+            [userId]
+        );
+        return result.rows[0];
     }
 
     static async getPendingDoctors() {
         const result = await db.query(
             `SELECT * FROM users WHERE role = 'doctor' AND "doctorStatus" = 'pending' ORDER BY "createDate" DESC`
         );
-        return result.rows;
+        return result.rows.map((row) => this.toPublic(row));
     }
 
 
@@ -152,13 +180,14 @@ class User {
         const values = [];
         let paramCount = 0;
 
-        if (data.doctorStatus !== undefined) {
+        const allowedStatuses = ['pending', 'approved', 'rejected'];
+        if (allowedStatuses.includes(data.doctorStatus)) {
             paramCount++;
             updates.push(`"doctorStatus" = $${paramCount}`);
             values.push(data.doctorStatus);
         }
 
-        if (data.isActive !== undefined) {
+        if (typeof data.isActive === 'boolean') {
             paramCount++;
             updates.push(`"isActive" = $${paramCount}`);
             values.push(data.isActive);
@@ -172,7 +201,7 @@ class User {
 
         const query = `UPDATE users SET ${updates.join(', ')} WHERE "userId" = $${paramCount} RETURNING *`;
         const result = await db.query(query, values);
-        return result.rows[0];
+        return this.toPublic(result.rows[0]);
     }
 }
 

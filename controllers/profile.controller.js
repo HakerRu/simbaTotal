@@ -3,22 +3,6 @@ const { uploadToS3, deleteFromS3 } = require('../utils/s3');
 
 exports.updateProfile = async (req, res) => {
     try {
-        // Хардкод-админ — заглушка
-        if (req.user.userId === 0) {
-            return res.json({
-                success: true,
-                user: {
-                    userId: 0,
-                    userEmail: 'admin',
-                    userFirstName: req.body.userFirstName || 'Администратор',
-                    userLastName: req.body.userLastName || 'Симба',
-                    userPhone: req.body.userPhone || null,
-                    role: 'admin',
-                    isEmailVerified: true
-                }
-            });
-        }
-
         const updateData = {
             userFirstName: req.body.userFirstName,
             userLastName: req.body.userLastName,
@@ -49,17 +33,6 @@ exports.uploadAvatar = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Файл не загружен' });
         }
 
-        // Хардкод-админ — просто загружаем без сохранения в БД
-        if (req.user.userId === 0) {
-            const result = await uploadToS3(req.file, 'avatars');
-            return res.json({
-                success: true,
-                avatarUrl: result.url,
-                avatarKey: result.key
-            });
-        }
-
-        // Обычный юзер
         const currentUser = await User.findById(req.user.userId);
 
         if (!currentUser) {
@@ -88,6 +61,6 @@ exports.uploadAvatar = async (req, res) => {
         });
     } catch (e) {
         console.error('Ошибка загрузки аватара:', e);
-        res.status(500).json({ success: false, message: 'Ошибка загрузки: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка загрузки' });
     }
 };

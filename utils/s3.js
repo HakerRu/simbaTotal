@@ -3,8 +3,14 @@ const { s3Client } = require('../config/s3');
 const crypto = require('crypto');
 const path = require('path');
 
+const ALLOWED_FOLDERS = new Set(['products', 'posts', 'gallery', 'certificates', 'avatars']);
+
 const uploadToS3 = async (file, folder = 'products') => {
-    const ext = path.extname(file.originalname);
+    if (!ALLOWED_FOLDERS.has(folder)) {
+        throw new Error('Недопустимая папка');
+    }
+
+    const ext = path.extname(file.originalname).toLowerCase();
     const key = `${folder}/${crypto.randomBytes(16).toString('hex')}${ext}`;
 
     // Определяем ContentType

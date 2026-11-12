@@ -116,8 +116,12 @@ class Product {
         const values = [];
         let paramCount = 0;
 
+        const allowed = [
+            'productName', 'productSlug', 'productDescription', 'productPrice',
+            'productDiscountPrice', 'stockQuantity', 'categoryId', 'isActive'
+        ];
         for (const [key, value] of Object.entries(data)) {
-            if (value !== undefined) {
+            if (allowed.includes(key) && value !== undefined) {
                 paramCount++;
                 updates.push(`"${key}" = $${paramCount}`);
                 values.push(value);

@@ -4,6 +4,11 @@ const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const { slugify, generateOrderNumber } = require('../utils/helpers');
 
+const invalidNumber = (value) => {
+    const n = Number(value);
+    return !Number.isFinite(n) || n < 0;
+};
+
 // ==================== ТОВАРЫ ====================
 exports.getProducts = async (req, res) => {
     try {
@@ -30,7 +35,24 @@ exports.getProduct = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
-        const product = await Product.create({ ...req.body, productSlug: slugify(req.body.productName) });
+        const stockQuantity = Number(req.body.stockQuantity);
+        const discount = req.body.productDiscountPrice;
+        if (!req.body.productName || invalidNumber(req.body.productPrice) || !Number.isInteger(stockQuantity) || stockQuantity < 0) {
+            return res.status(400).json({ success: false, message: 'Проверьте название, цену и количество' });
+        }
+        if (discount !== undefined && discount !== null && discount !== '' && (invalidNumber(discount) || Number(discount) > Number(req.body.productPrice))) {
+            return res.status(400).json({ success: false, message: 'Некорректная скидка' });
+        }
+
+        const product = await Product.create({
+            productName: req.body.productName,
+            productSlug: slugify(req.body.productName),
+            productDescription: req.body.productDescription,
+            productPrice: Number(req.body.productPrice),
+            productDiscountPrice: discount === '' || discount === undefined ? null : discount,
+            stockQuantity,
+            categoryId: req.body.categoryId || null
+        });
 
         if (req.body.images && req.body.images.length > 0) {
             await Product.addImages(product.productId, req.body.images);
@@ -39,11 +61,21 @@ exports.createProduct = async (req, res) => {
         res.status(201).json({ success: true, product });
     } catch (e) {
         console.error('Ошибка создания товара:', e);
-        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 };
 exports.updateProduct = async (req, res) => {
     try {
+        if (req.body.productPrice !== undefined && invalidNumber(req.body.productPrice)) {
+            return res.status(400).json({ success: false, message: 'Некорректная цена' });
+        }
+        if (req.body.stockQuantity !== undefined && (!Number.isInteger(Number(req.body.stockQuantity)) || Number(req.body.stockQuantity) < 0)) {
+            return res.status(400).json({ success: false, message: 'Некорректное количество' });
+        }
+        if (req.body.productDiscountPrice !== undefined && req.body.productDiscountPrice !== null && req.body.productDiscountPrice !== '' && invalidNumber(req.body.productDiscountPrice)) {
+            return res.status(400).json({ success: false, message: 'Некорректная скидка' });
+        }
+
         const product = await Product.update(req.params.id, req.body);
 
         // Если передали новые фото — заменяем
@@ -81,7 +113,7 @@ exports.createCategory = async (req, res) => {
         res.status(201).json({ success: true, category });
     } catch (e) {
         console.error('Ошибка создания категории:', e);
-        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 };
 
@@ -141,8 +173,11 @@ exports.getCartCount = async (req, res) => {
 
 exports.addToCart = async (req, res) => {
     try {
-        const { productId, quantity = 1 } = req.body;
-        const item = await Cart.addItem(req.user.userId, productId, parseInt(quantity));
+        const quantity = parseInt(req.body.quantity ?? 1, 10);
+        if (!req.body.productId || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+            return res.status(400).json({ success: false, message: 'Некорректное количество' });
+        }
+        const item = await Cart.addItem(req.user.userId, req.body.productId, quantity);
         const count = await Cart.getCount(req.user.userId);
         res.json({ success: true, item, count });
     } catch (e) {
@@ -152,8 +187,11 @@ exports.addToCart = async (req, res) => {
 
 exports.updateCartItem = async (req, res) => {
     try {
-        const { quantity } = req.body;
-        const item = await Cart.updateQuantity(req.user.userId, req.params.productId, parseInt(quantity));
+        const quantity = parseInt(req.body.quantity, 10);
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+            return res.status(400).json({ success: false, message: 'Некорректное количество' });
+        }
+        const item = await Cart.updateQuantity(req.user.userId, req.params.productId, quantity);
         const count = await Cart.getCount(req.user.userId);
         res.json({ success: true, item, count });
     } catch (e) {
@@ -226,7 +264,7 @@ exports.createOrder = async (req, res) => {
         res.status(201).json({ success: true, order });
     } catch (e) {
         console.error('Ошибка создания заказа:', e);
-        res.status(500).json({ success: false, message: 'Ошибка создания заказа: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка создания заказа' });
     }
 };
 
@@ -244,7 +282,7 @@ exports.getOrder = async (req, res) => {
         const order = await Order.getById(req.params.id);
         if (!order) return res.status(404).json({ success: false, message: 'Заказ не найден' });
 
-        if (order.userId !== req.user.userId && req.user.role !== 'admin' && req.user.role !== 'manager') {
+        if (String(order.userId) !== String(req.user.userId) && req.user.role !== 'admin' && req.user.role !== 'manager') {
             return res.status(403).json({ success: false, message: 'Доступ запрещён' });
         }
 

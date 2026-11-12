@@ -11,11 +11,11 @@ exports.getAllDoctors = async (req, res) => {
 
 exports.getDoctorById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
-        if (!user || user.role !== 'doctor') {
+        const doctor = await User.findPublicDoctor(req.params.id);
+        if (!doctor) {
             return res.status(404).json({ success: false, message: 'Врач не найден' });
         }
-        res.json({ success: true, doctor: user });
+        res.json({ success: true, doctor });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка' });
     }
@@ -37,7 +37,7 @@ exports.updateMyProfile = async (req, res) => {
         }
 
         const user = await User.updateProfile(req.user.userId, updateData);
-        res.json({ success: true, user });
+        res.json({ success: true, user: User.toPublic(user) });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });
     }

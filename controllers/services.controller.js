@@ -24,19 +24,36 @@ exports.getService = async (req, res) => {
 
 exports.createService = async (req, res) => {
     try {
+        const servicePrice = Number(req.body.servicePrice);
+        const durationMinutes = Number(req.body.durationMinutes ?? 30);
+        if (!req.body.serviceName || !Number.isFinite(servicePrice) || servicePrice < 0 || !Number.isInteger(durationMinutes) || durationMinutes < 0) {
+            return res.status(400).json({ success: false, message: 'Проверьте название, цену и длительность' });
+        }
+
         const service = await Service.create({
-            ...req.body,
-            serviceSlug: slugify(req.body.serviceName) + '-' + Date.now()
+            serviceName: req.body.serviceName,
+            serviceSlug: slugify(req.body.serviceName) + '-' + Date.now(),
+            serviceDescription: req.body.serviceDescription,
+            servicePrice,
+            durationMinutes,
+            categoryId: req.body.categoryId || null
         });
         res.status(201).json({ success: true, service });
     } catch (e) {
         console.error('Ошибка создания услуги:', e);
-        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 };
 
 exports.updateService = async (req, res) => {
     try {
+        if (req.body.servicePrice !== undefined && (!Number.isFinite(Number(req.body.servicePrice)) || Number(req.body.servicePrice) < 0)) {
+            return res.status(400).json({ success: false, message: 'Некорректная цена' });
+        }
+        if (req.body.durationMinutes !== undefined && (!Number.isInteger(Number(req.body.durationMinutes)) || Number(req.body.durationMinutes) < 0)) {
+            return res.status(400).json({ success: false, message: 'Некорректная длительность' });
+        }
+
         const service = await Service.update(req.params.id, req.body);
         res.json({ success: true, service });
     } catch (e) {

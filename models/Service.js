@@ -49,8 +49,12 @@ class Service {
         const values = [];
         let paramCount = 0;
 
+        const allowed = [
+            'serviceName', 'serviceSlug', 'serviceDescription', 'servicePrice',
+            'durationMinutes', 'categoryId', 'isActive'
+        ];
         for (const [key, value] of Object.entries(data)) {
-            if (value !== undefined) {
+            if (allowed.includes(key) && value !== undefined) {
                 paramCount++;
                 updates.push(`"${key}" = $${paramCount}`);
                 values.push(value);

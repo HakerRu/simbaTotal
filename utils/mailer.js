@@ -68,8 +68,7 @@ const sendVerificationEmail = async (to, firstName, token) => {
         });
 
         if (process.env.NODE_ENV === 'development') {
-            console.log(`📧 Письмо отправлено на ${to}`);
-            console.log(`🔗 Ссылка подтверждения: ${verifyUrl}`);
+            console.log('Письмо с подтверждением отправлено');
         }
 
         return { success: true };

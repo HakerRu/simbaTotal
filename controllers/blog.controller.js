@@ -77,7 +77,7 @@ exports.createPost = async (req, res) => {
             postSlug: slugify(postTitle) + '-' + Date.now(),
             postContent,
             postType: postType || 'article',
-            authorId: req.user.userId === 0 ? null : req.user.userId, // ← фикс
+            authorId: req.user.userId,
             isPublished: isPublished !== undefined ? isPublished : false,
             media: media || []
         });
@@ -85,7 +85,7 @@ exports.createPost = async (req, res) => {
         res.status(201).json({ success: true, post });
     } catch (e) {
         console.error('Ошибка создания поста:', e);
-        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 };
 

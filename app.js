@@ -1,8 +1,10 @@
+require('dotenv').config();
+require('express-async-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-require('dotenv').config();
+const helmet = require('helmet');
 
 const authRoutes = require('./routes/auth.routes');
 const shopRoutes = require('./routes/shop.routes');
@@ -17,14 +19,17 @@ const certificatesRoutes = require('./routes/certificates.routes');
 
 const galleryRoutes = require('./routes/gallery.routes');
 
-// Middleware сначала
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
 app.use(cors({
     origin: process.env.BASE_URL || 'http://localhost:3000',
     credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ...

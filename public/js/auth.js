@@ -213,8 +213,13 @@ if (adminForm) {
             console.log('Ответ сервера:', data);
 
             // Если сервер сказал что успешно — кидаем в админку
-            if (data.success) {
+            if (data.success && (data.user?.role === 'admin' || data.user?.role === 'manager')) {
                 window.location.href = '/admin.html';
+            } else if (data.success) {
+                await API.post('/auth/logout');
+                alert.style.display = 'block';
+                alert.className = 'alert alert-danger py-2 small';
+                alert.textContent = 'Недостаточно прав';
             } else {
                 alert.style.display = 'block';
                 alert.className = 'alert alert-danger py-2 small';
