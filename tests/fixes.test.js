@@ -631,6 +631,31 @@ describe('controllers/blog.controller', () => {
         await blogController.toggleLike({ params: { id: '99' }, ip: '127.0.0.1' }, likeRes);
         assert.equal(likeRes.statusCode, 404);
     });
+
+    it('getPost returns likesCount and isLiked alongside incremented views', async () => {
+        dbQueryHandler = async (sql) => {
+            if (sql.includes('FROM posts p') && sql.includes('WHERE p."postId" = $1')) {
+                return { rows: [{ postId: '10', postTitle: 'Уход', postType: 'reel', postViews: 4 }] };
+            }
+            if (sql.includes('FROM post_media')) {
+                return { rows: [{ mediaId: '1', mediaType: 'video', mediaUrl: '/uploads/v.mp4' }] };
+            }
+            if (sql.includes('SELECT "postId", COUNT(*)::int as count')) {
+                return { rows: [{ postId: '10', count: 9 }] };
+            }
+            if (sql.includes('SELECT "postId" FROM post_likes')) {
+                return { rows: [{ postId: '10' }] };
+            }
+            return { rows: [] };
+        };
+
+        const postRes = createMockRes();
+        await blogController.getPost({ params: { id: '10' }, ip: '127.0.0.1' }, postRes);
+        assert.equal(postRes.statusCode, 200);
+        assert.equal(postRes.body.post.postViews, 5);
+        assert.equal(postRes.body.post.likesCount, 9);
+        assert.equal(postRes.body.post.isLiked, true);
+    });
 });
 
 describe('HTTP Express routes via app.js', () => {

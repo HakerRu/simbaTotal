@@ -113,7 +113,7 @@ class Post {
             'SELECT COUNT(*)::int as count FROM post_likes WHERE "postId" = $1',
             [postId]
         );
-        return result.rows[0].count;
+        return result.rows[0]?.count || 0;
     }
 
     static async getLikesCounts(postIds) {

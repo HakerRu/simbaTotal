@@ -38,8 +38,18 @@ exports.getPost = async (req, res) => {
         const post = await Post.getById(req.params.id, { publishedOnly: !isStaff(req) });
         if (!post) return res.status(404).json({ success: false, message: 'Пост не найден' });
 
-        await Post.incrementViews(req.params.id);
+        const userId = req.user?.userId || null;
+        const ip = req.ip || req.socket?.remoteAddress || '0.0.0.0';
+
+        const [, likesCounts, likedIds] = await Promise.all([
+            Post.incrementViews(req.params.id),
+            Post.getLikesCounts([post.postId]),
+            Post.getLikedPostIds(userId, ip, [post.postId])
+        ]);
+
         post.postViews = (post.postViews || 0) + 1;
+        post.likesCount = likesCounts[post.postId] || 0;
+        post.isLiked = likedIds.includes(post.postId);
 
         res.json({ success: true, post });
     } catch (e) {

@@ -114,60 +114,65 @@ function renderReels() {
 
         return `
         <div class="reel-item" data-index="${index}" data-id="${escapeHtml(post.postId)}">
-            ${isVideo ? `
-                <video class="reel-video" src="${mediaSrc}" loop playsinline preload="metadata" muted></video>
-            ` : isImage ? `
-                <img class="reel-image" src="${mediaSrc}" alt="${safeTitle}">
-            ` : `
-                <div class="reel-text-only">
-                    <div class="reel-type-badge">${isArticle ? '📝 Статья' : '🎬 Рилс'}</div>
-                    <h2>${safeTitle}</h2>
-                    <p>${escapeHtml((post.postContent || '').substring(0, 300))}${post.postContent && post.postContent.length > 300 ? '...' : ''}</p>
-                </div>
-            `}
-            
-            <div class="reel-actions">
-                <div class="text-center">
-                    <button class="reel-action" onclick="toggleLike(${Number(post.postId)}, this)">
-                        <i class="bi ${isLiked ? 'bi-heart-fill text-danger' : 'bi-heart'}"></i>
-                    </button>
-                    <div class="reel-action-count">${likesCount}</div>
-                </div>
-                <div class="text-center">
-                    <button class="reel-action" onclick="openPost(${Number(post.postId)})" title="Открыть статью полностью">
-                        <i class="bi bi-file-text"></i>
-                    </button>
-                    <div class="reel-action-count">${post.postViews || 0}</div>
-                </div>
-                <div class="text-center">
-                    <a href="/blog.html#post-${Number(post.postId)}" class="reel-action text-decoration-none" title="Открыть в ленте">
-                        <i class="bi bi-grid-3x3-gap"></i>
-                    </a>
-                </div>
-                <div class="text-center">
-                    <button class="reel-action" onclick="shareReel(${Number(post.postId)})" title="Поделиться">
-                        <i class="bi bi-send"></i>
-                    </button>
-                </div>
+            <div class="reel-frame">
                 ${isVideo ? `
+                    <video class="reel-video" src="${mediaSrc}" loop playsinline preload="metadata" muted></video>
+                ` : isImage ? `
+                    <img class="reel-image" src="${mediaSrc}" alt="${safeTitle}">
+                ` : `
+                    <div class="reel-text-only">
+                        <div class="reel-type-badge">${isArticle ? '📝 Статья' : '🎬 Рилс'}</div>
+                        <h2>${safeTitle}</h2>
+                        <p>${escapeHtml((post.postContent || '').substring(0, 300))}${post.postContent && post.postContent.length > 300 ? '...' : ''}</p>
+                    </div>
+                `}
+
+                <div class="reel-actions">
                     <div class="text-center">
-                        <button class="reel-action" onclick="toggleSound(this)">
-                            <i class="bi bi-volume-mute"></i>
+                        <button class="reel-action" onclick="toggleLike(${Number(post.postId)}, this)" title="Нравится">
+                            <i class="bi ${isLiked ? 'bi-heart-fill text-danger' : 'bi-heart'}"></i>
+                        </button>
+                        <div class="reel-action-count">${likesCount}</div>
+                    </div>
+                    <div class="text-center">
+                        <button class="reel-action" onclick="openPost(${Number(post.postId)})" title="Открыть статью полностью">
+                            <i class="bi bi-file-text"></i>
+                        </button>
+                        <div class="reel-action-count">${post.postViews || 0}</div>
+                    </div>
+                    <div class="text-center">
+                        <a href="/blog.html#post-${Number(post.postId)}" class="reel-action text-decoration-none" title="Открыть в ленте">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </a>
+                    </div>
+                    <div class="text-center">
+                        <button class="reel-action" onclick="shareReel(${Number(post.postId)})" title="Поделиться">
+                            <i class="bi bi-send"></i>
                         </button>
                     </div>
-                ` : ''}
-            </div>
-            
-            <div class="reel-overlay">
-                <div class="reel-author">
-                    <div class="reel-author-avatar">${escapeHtml(author[0] || 'С')}</div>
-                    <div>
-                        <div style="font-weight:600;font-size:0.9rem">${safeAuthor}</div>
-                        <div style="font-size:0.75rem;opacity:0.75">${new Date(post.createDate).toLocaleDateString('ru-RU')}</div>
-                    </div>
+                    ${isVideo ? `
+                        <div class="text-center">
+                            <button class="reel-action" onclick="toggleSound(this)" title="Звук">
+                                <i class="bi bi-volume-mute"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="reel-title">${safeTitle}</div>
-                <p class="reel-desc">${escapeHtml((post.postContent || '').substring(0, 100))}${post.postContent && post.postContent.length > 100 ? '...' : ''}</p>
+
+                <div class="reel-overlay">
+                    <div class="reel-author">
+                        <div class="reel-author-avatar">${escapeHtml(author[0] || 'С')}</div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.9rem">${safeAuthor}</div>
+                            <div style="font-size:0.75rem;opacity:0.75">${new Date(post.createDate).toLocaleDateString('ru-RU')}</div>
+                        </div>
+                    </div>
+                    <div class="reel-title" style="cursor:pointer" onclick="openPost(${Number(post.postId)})">${safeTitle}</div>
+                    <p class="reel-desc">${escapeHtml((post.postContent || '').substring(0, 100))}${post.postContent && post.postContent.length > 100 ? '...' : ''}</p>
+                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3 mt-2 fw-semibold" style="font-size:0.76rem" onclick="openPost(${Number(post.postId)})">
+                        Читать полностью <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
             </div>
         </div>`;
     }).join('');
