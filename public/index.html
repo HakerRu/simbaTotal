@@ -6,7 +6,7 @@
     <title>ВетКлиника «Симба» — забота о ваших питомцах</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
@@ -14,161 +14,212 @@
 <!-- НАВИГАЦИЯ -->
 <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/"><i class="bi bi-heart-pulse-fill"></i> Симба</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Меню">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand" href="/"><i class="bi bi-heart-pulse-fill"></i> Симба</a>
+        <div class="d-flex align-items-center gap-2 d-lg-none">
+            <a href="/cart.html" class="nav-icon-btn" aria-label="Корзина">
+                <i class="bi bi-cart3"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count" style="display:none">0</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Меню">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
         <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1">
                 <li class="nav-item"><a class="nav-link active" href="/">Главная</a></li>
                 <li class="nav-item"><a class="nav-link" href="/shop.html">Магазин</a></li>
                 <li class="nav-item"><a class="nav-link" href="/services.html">Услуги</a></li>
                 <li class="nav-item"><a class="nav-link" href="/reels.html">Инфостенд</a></li>
                 <li class="nav-item"><a class="nav-link" href="/doctors.html">Сотрудники</a></li>
-                <li class="nav-item"><a class="nav-link" href="/gallery.html">Галерея</a></li>
-                <li class="nav-item"><a class="nav-link" href="/certificates.html">Сертификаты</a></li>
-                <li class="nav-item"><a class="nav-link" href="/contacts.html">Контакты</a></li>
-                <li class="nav-item ms-lg-3" id="userMenu">
-                    <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="/login.html"><i class="bi bi-person"></i> Войти</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">О клинике</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/gallery.html"><i class="bi bi-images me-2 text-primary"></i>Галерея</a></li>
+                        <li><a class="dropdown-item" href="/certificates.html"><i class="bi bi-award me-2 text-primary"></i>Сертификаты</a></li>
+                        <li><a class="dropdown-item" href="/contacts.html"><i class="bi bi-geo-alt me-2 text-primary"></i>Контакты</a></li>
+                    </ul>
                 </li>
             </ul>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <a href="/cart.html" class="nav-icon-btn d-none d-lg-inline-flex" aria-label="Корзина" title="Корзина">
+                    <i class="bi bi-cart3"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count" style="display:none">0</span>
+                </a>
+                <a href="/contacts.html" class="nav-icon-btn d-none d-lg-inline-flex" aria-label="Контакты" title="Контакты и звонок">
+                    <i class="bi bi-telephone"></i>
+                </a>
+                <div id="userMenu">
+                    <a class="btn btn-nav-auth btn-sm rounded-pill px-3" href="/login.html"><i class="bi bi-person"></i> Войти</a>
+                </div>
+            </div>
         </div>
     </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero-section d-flex align-items-center">
+<!-- HERO BENTO -->
+<section class="hero-bento">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 text-white hero-content">
-                <h1 class="display-3 fw-bold mb-3">Забота о ваших<br><span class="text-accent">любимых питомцах</span></h1>
-                <p class="lead mb-4 opacity-90">Профессиональная ветеринарная помощь, современное оборудование и команда опытных врачей — всё для здоровья вашего друга.</p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="/services.html" class="btn btn-light btn-lg rounded-pill px-4 fw-semibold"><i class="bi bi-clipboard2-pulse"></i> Наши услуги</a>
-                    <a href="/doctors.html" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-semibold"><i class="bi bi-calendar-check"></i> Сотрудники</a>
+        <div class="row align-items-center g-4 g-lg-5">
+            <div class="col-lg-5">
+                <div class="hero-pill mb-3">
+                    <i class="bi bi-clock-fill"></i>
+                    <span>Ветклиника и зоомагазин • 9:00–21:00</span>
                 </div>
-                <div class="mt-4 d-flex gap-3 gap-lg-4 hero-stats flex-wrap">
-                    <div><span class="fs-3 fw-bold">14+</span><span class="d-block small opacity-75">лет опыта</span></div>
-                    <div class="vr opacity-25 d-none d-sm-block"></div>
-                    <div><span class="fs-3 fw-bold">5000+</span><span class="d-block small opacity-75">клиентов</span></div>
-                    <div class="vr opacity-25 d-none d-sm-block"></div>
-                    <div><span class="fs-3 fw-bold">12</span><span class="d-block small opacity-75">врачей</span></div>
+                <h1 class="mb-3">Забота о ваших любимых питомцах</h1>
+                <p class="hero-subtitle mb-4">
+                    Современная ветеринарная помощь, опытная команда врачей и зоомагазин с быстрым самовывозом — всё для здоровья и радости вашего друга.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/services.html" class="btn btn-accent btn-lg rounded-pill px-4">
+                        Услуги и цены
+                    </a>
+                    <a href="/shop.html" class="btn btn-outline-navy btn-lg rounded-pill px-4">
+                        Перейти в магазин
+                    </a>
                 </div>
             </div>
-            <div class="col-lg-6 text-center mt-4 mt-lg-0">
-                <div class="hero-image-wrapper">
-                    <img src="/uploads/gallery/dogg.jpg" alt="Счастливый питомец в ветклинике Симба" class="hero-image img-fluid" loading="eager" onerror="this.onerror=null;this.closest('.col-lg-6').style.display='none';">
+
+            <div class="col-lg-7">
+                <div class="bento-mosaic">
+                    <div class="bento-photo-card">
+                        <img src="/images/hero-vet.jpg" alt="Врач ветклиники Симба с золотистым ретривером" loading="eager">
+                    </div>
+
+                    <div class="bento-metrics-card">
+                        <div>
+                            <div class="bento-metric-value">14+</div>
+                            <div class="bento-metric-label">лет практики</div>
+                        </div>
+                        <hr class="border-light opacity-25 my-2">
+                        <div>
+                            <div class="bento-metric-value">5 000+</div>
+                            <div class="bento-metric-label">здоровых питомцев</div>
+                        </div>
+                    </div>
+
+                    <a href="/shop.html" class="bento-shop-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold fs-6">Зоомагазин</span>
+                            <i class="bi bi-arrow-up-right text-primary"></i>
+                        </div>
+                        <div class="bento-shop-thumb">
+                            <img src="/images/shop-pet-goods.jpg" alt="Товары для питомцев в зоомагазине Симба" loading="eager">
+                        </div>
+                        <span class="bento-pickup-badge">Самовывоз за 30 мин</span>
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="hero-wave">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100"><path fill="var(--light)" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path></svg>
     </div>
 </section>
 
-<!-- КАРТОЧКИ -->
-<section class="section-padding bg-light">
+<!-- УСЛУГИ И ВРАЧИ (BENTO) -->
+<section class="section-padding pt-4">
     <div class="container">
-        <div class="section-header text-center mb-5">
-            <h2 class="fw-bold">Что мы предлагаем</h2>
-            <p class="text-muted">Полный спектр услуг для ваших питомцев</p>
+        <div class="section-header d-flex justify-content-between align-items-end flex-wrap gap-2 mb-4">
+            <div>
+                <h2>Услуги и специалисты</h2>
+                <p class="text-muted mb-0">Прозрачные цены и команда профильных врачей</p>
+            </div>
+            <a href="/services.html" class="btn btn-outline-navy btn-sm rounded-pill px-3">
+                Все услуги <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
-        <div class="row g-3 g-md-4">
-            <div class="col-6 col-md-3">
-                <a href="/shop.html" class="text-decoration-none">
-                    <div class="card service-card border-0 shadow-sm text-center p-3 p-md-4">
-                        <div class="card-body p-0">
-                            <div class="icon-box bg-primary bg-opacity-10 mx-auto mb-3"><i class="bi bi-shop fs-2 text-primary"></i></div>
-                            <h5 class="card-title fw-bold">Магазин</h5>
-                            <p class="card-text text-muted small d-none d-md-block">Корма, лекарства, аксессуары</p>
-                            <span class="btn btn-sm btn-outline-primary rounded-pill px-3">Перейти <i class="bi bi-arrow-right"></i></span>
+
+        <div class="row g-3 g-md-4" id="homeServices">
+            <div class="col-12 col-md-4">
+                <div class="service-bento-card">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h5 class="fw-bold text-navy mb-1">Терапия</h5>
+                            <div class="service-price-pill">от 1 200 ₽</div>
                         </div>
+                        <span class="service-bento-icon"><i class="bi bi-heart-pulse"></i></span>
                     </div>
-                </a>
+                    <p class="text-muted small mt-3 mb-3">Первичный приём, осмотр, постановка диагноза и план лечения.</p>
+                    <a href="/services.html" class="text-decoration-none fw-semibold small text-primary">Подробнее <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
-            <div class="col-6 col-md-3">
-                <a href="/services.html" class="text-decoration-none">
-                    <div class="card service-card border-0 shadow-sm text-center p-3 p-md-4">
-                        <div class="card-body p-0">
-                            <div class="icon-box bg-info bg-opacity-10 mx-auto mb-3"><i class="bi bi-heart-pulse fs-2 text-info"></i></div>
-                            <h5 class="card-title fw-bold">Услуги</h5>
-                            <p class="card-text text-muted small d-none d-md-block">Терапия, хирургия, вакцинация</p>
-                            <span class="btn btn-sm btn-outline-info rounded-pill px-3">Подробнее <i class="bi bi-arrow-right"></i></span>
+            <div class="col-12 col-md-4">
+                <div class="service-bento-card">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h5 class="fw-bold text-navy mb-1">Вакцинация</h5>
+                            <div class="service-price-pill">от 1 500 ₽</div>
                         </div>
+                        <span class="service-bento-icon"><i class="bi bi-shield-check"></i></span>
                     </div>
-                </a>
+                    <p class="text-muted small mt-3 mb-3">Импортные и отечественные вакцины с оформлением ветпаспорта.</p>
+                    <a href="/services.html" class="text-decoration-none fw-semibold small text-primary">Подробнее <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
-            <div class="col-6 col-md-3">
-                <a href="/doctors.html" class="text-decoration-none">
-                    <div class="card service-card border-0 shadow-sm text-center p-3 p-md-4">
-                        <div class="card-body p-0">
-                            <div class="icon-box bg-success bg-opacity-10 mx-auto mb-3"><i class="bi bi-people fs-2 text-success"></i></div>
-                            <h5 class="card-title fw-bold">Сотрудники</h5>
-                            <p class="card-text text-muted small d-none d-md-block">Опытные врачи клиники</p>
-                            <span class="btn btn-sm btn-outline-success rounded-pill px-3">Смотреть <i class="bi bi-arrow-right"></i></span>
+            <div class="col-12 col-md-4">
+                <div class="service-bento-card">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h5 class="fw-bold text-navy mb-1">Хирургия</h5>
+                            <div class="service-price-pill">от 2 500 ₽</div>
                         </div>
+                        <span class="service-bento-icon"><i class="bi bi-clipboard2-pulse"></i></span>
                     </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3">
-                <a href="/reels.html" class="text-decoration-none">
-                    <div class="card service-card border-0 shadow-sm text-center p-3 p-md-4">
-                        <div class="card-body p-0">
-                            <div class="icon-box bg-warning bg-opacity-10 mx-auto mb-3"><i class="bi bi-newspaper fs-2 text-warning"></i></div>
-                            <h5 class="card-title fw-bold">Инфостенд</h5>
-                            <p class="card-text text-muted small d-none d-md-block">Статьи и новости</p>
-                            <span class="btn btn-sm btn-outline-warning rounded-pill px-3">Читать <i class="bi bi-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </a>
+                    <p class="text-muted small mt-3 mb-3">Плановые и экстренные операции в оборудованной операционной.</p>
+                    <a href="/services.html" class="text-decoration-none fw-semibold small text-primary">Подробнее <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- О КЛИНИКЕ -->
-<section class="section-padding bg-white">
+<section class="section-padding pt-2">
     <div class="container">
-        <div class="row align-items-center g-4 g-lg-5">
-            <div class="col-lg-6">
-                <div class="about-image-wrapper position-relative">
-                    <img src="/uploads/gallery/simba.png" alt="Ветеринарная клиника Симба" class="img-fluid rounded-4 shadow w-100" loading="lazy" onerror="this.onerror=null;this.closest('.col-lg-6').style.display='none';">
+        <div class="about-bento-wrap">
+            <div class="row align-items-center g-4 g-lg-5">
+                <div class="col-lg-6">
+                    <div class="about-image-wrapper">
+                        <img src="/images/about-clinic.jpg" alt="Осмотр кошки в кабинете ветклиники Симба" loading="lazy">
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-6">
-                <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill fw-medium">О нас</span>
-                <h2 class="fw-bold mb-3">Заботимся о ваших питомцах<br>уже <span class="text-primary">14 лет</span></h2>
-                <p class="text-muted mb-3">«Симба» — это современная ветеринарная клиника с полным спектром услуг. Мы объединили опытных врачей, новейшее оборудование и искреннюю любовь к животным.</p>
-                <p class="text-muted mb-4">Наш подход — индивидуальный план лечения для каждого пациента. От профилактического осмотра до сложной операции — мы рядом с вами.</p>
-                <div class="row g-2 g-md-3 mb-4">
-                    <div class="col-6"><div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i><small>Современное оборудование</small></div></div>
-                    <div class="col-6"><div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i><small>Опытные врачи</small></div></div>
-                    <div class="col-6"><div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i><small>Стерильность</small></div></div>
-                    <div class="col-6"><div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i><small>Доступные цены</small></div></div>
+                <div class="col-lg-6">
+                    <span class="badge bg-coral-soft mb-2 px-3 py-2 rounded-pill fw-semibold">О клинике</span>
+                    <h2 class="fw-bold text-navy mb-3">Заботимся о ваших питомцах уже 14 лет</h2>
+                    <p class="text-muted mb-3">
+                        «Симба» — современная ветеринарная клиника с полным спектром помощи: от профилактических осмотров до сложной диагностики и собственной ветаптеки.
+                    </p>
+                    <div class="row g-2 g-md-3 mb-4">
+                        <div class="col-sm-6"><div class="feature-chip"><i class="bi bi-check-circle-fill text-success"></i><span>Современное оборудование</span></div></div>
+                        <div class="col-sm-6"><div class="feature-chip"><i class="bi bi-check-circle-fill text-success"></i><span>Опытные врачи</span></div></div>
+                        <div class="col-sm-6"><div class="feature-chip"><i class="bi bi-check-circle-fill text-success"></i><span>Своя аптека и корма</span></div></div>
+                        <div class="col-sm-6"><div class="feature-chip"><i class="bi bi-check-circle-fill text-success"></i><span>Честные цены</span></div></div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="/doctors.html" class="btn btn-primary rounded-pill px-4"><i class="bi bi-people"></i> Познакомиться с врачами</a>
+                        <a href="/contacts.html" class="btn btn-outline-navy rounded-pill px-4"><i class="bi bi-geo-alt"></i> Как нас найти</a>
+                    </div>
                 </div>
-                <a href="/contacts.html" class="btn btn-primary rounded-pill px-4 fw-semibold"><i class="bi bi-geo-alt"></i> Как нас найти</a>
             </div>
         </div>
     </div>
 </section>
 
 <!-- ПОСЛЕДНИЕ ПОСТЫ -->
-<section class="section-padding bg-light">
+<section class="section-padding pt-2">
     <div class="container">
-        <div class="section-header d-flex justify-content-between align-items-center mb-4 mb-md-5">
-            <div><h2 class="fw-bold mb-1">Последние новости</h2><p class="text-muted mb-0 d-none d-md-block">Полезные статьи от наших врачей</p></div>
-            <a href="/reels.html" class="btn btn-outline-primary rounded-pill px-3 px-md-4">Все статьи <i class="bi bi-arrow-right"></i></a>
+        <div class="section-header d-flex justify-content-between align-items-end flex-wrap gap-2 mb-4">
+            <div>
+                <h2>Инфостенд клиники</h2>
+                <p class="text-muted mb-0">Полезные советы, статьи и видео от наших ветеринаров</p>
+            </div>
+            <a href="/reels.html" class="btn btn-outline-navy btn-sm rounded-pill px-3">Все публикации <i class="bi bi-arrow-right"></i></a>
         </div>
         <div class="row g-3 g-md-4" id="latestPosts">
             <div class="col-12 col-md-4">
                 <div class="card border-0 shadow-sm h-100 placeholder-card">
                     <div class="card-img-top placeholder-glow" style="height:180px;background:var(--gray-200)"></div>
                     <div class="card-body">
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 placeholder-glow" style="width:80px">&nbsp;</span>
+                        <span class="badge bg-cyan-soft mb-2 placeholder-glow" style="width:80px">&nbsp;</span>
                         <h5 class="card-title placeholder-glow"><span class="placeholder col-8"></span></h5>
                         <p class="card-text placeholder-glow"><span class="placeholder col-12"></span><span class="placeholder col-10"></span></p>
-                        <div class="d-flex justify-content-between mt-2"><small class="placeholder col-3"></small><small class="placeholder col-4"></small></div>
                     </div>
                 </div>
             </div>
@@ -176,10 +227,9 @@
                 <div class="card border-0 shadow-sm h-100 placeholder-card">
                     <div class="card-img-top placeholder-glow" style="height:180px;background:var(--gray-200)"></div>
                     <div class="card-body">
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 placeholder-glow" style="width:80px">&nbsp;</span>
+                        <span class="badge bg-cyan-soft mb-2 placeholder-glow" style="width:80px">&nbsp;</span>
                         <h5 class="card-title placeholder-glow"><span class="placeholder col-8"></span></h5>
                         <p class="card-text placeholder-glow"><span class="placeholder col-12"></span><span class="placeholder col-10"></span></p>
-                        <div class="d-flex justify-content-between mt-2"><small class="placeholder col-3"></small><small class="placeholder col-4"></small></div>
                     </div>
                 </div>
             </div>
@@ -187,10 +237,9 @@
                 <div class="card border-0 shadow-sm h-100 placeholder-card">
                     <div class="card-img-top placeholder-glow" style="height:180px;background:var(--gray-200)"></div>
                     <div class="card-body">
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 placeholder-glow" style="width:80px">&nbsp;</span>
+                        <span class="badge bg-cyan-soft mb-2 placeholder-glow" style="width:80px">&nbsp;</span>
                         <h5 class="card-title placeholder-glow"><span class="placeholder col-8"></span></h5>
                         <p class="card-text placeholder-glow"><span class="placeholder col-12"></span><span class="placeholder col-10"></span></p>
-                        <div class="d-flex justify-content-between mt-2"><small class="placeholder col-3"></small><small class="placeholder col-4"></small></div>
                     </div>
                 </div>
             </div>
@@ -198,13 +247,17 @@
     </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section section-padding text-white text-center">
+<!-- CTA BENTO -->
+<section class="section-padding pt-2">
     <div class="container">
-        <h2 class="fw-bold mb-3">Остались вопросы?</h2>
-        <p class="lead mb-4 opacity-90">Свяжитесь с нами удобным способом — мы всегда на связи</p>
-        <a href="/contacts.html" class="btn btn-light btn-lg rounded-pill px-5 fw-semibold"><i class="bi bi-geo-alt-fill"></i> Контакты</a>
-        <p class="mt-3 small opacity-75"><i class="bi bi-clock"></i> Работаем ежедневно с 9:00 до 21:00</p>
+        <div class="cta-bento-card text-center">
+            <h2 class="fw-bold mb-2">Остались вопросы или нужна помощь?</h2>
+            <p class="lead mb-4 opacity-90">Позвоните нам или загляните в клинику — работаем ежедневно с 9:00 до 21:00</p>
+            <div class="d-flex justify-content-center flex-wrap gap-3">
+                <a href="/contacts.html" class="btn btn-accent btn-lg rounded-pill px-4"><i class="bi bi-geo-alt-fill"></i> Контакты клиники</a>
+                <a href="tel:+79991234567" class="btn btn-light btn-lg rounded-pill px-4 text-navy"><i class="bi bi-telephone-fill"></i> +7 (999) 123-45-67</a>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -213,12 +266,12 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6 col-lg-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-heart-pulse-fill text-primary"></i> Симба</h5>
-                <p class="small mb-3" style="color:#cbd5e0">Ветеринарная клиника с полным спектром услуг. Современное оборудование, опытные врачи, любовь и забота о каждом питомце.</p>
+                <h5 class="fw-bold mb-3"><i class="bi bi-heart-pulse-fill text-accent"></i> Симба</h5>
+                <p class="small mb-3" style="color:#cbd5e1">Ветеринарная клиника с полным спектром услуг. Современное оборудование, опытные врачи, любовь и забота о каждом питомце.</p>
                 <div class="d-flex gap-2">
-                    <a href="#" class="btn btn-outline-light social-btn" aria-label="Telegram"><i class="bi bi-telegram"></i></a>
-                    <a href="#" class="btn btn-outline-light social-btn" aria-label="VK"><i class="bi bi-vk"></i></a>
-                    <a href="#" class="btn btn-outline-light social-btn" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    <a href="/contacts.html" class="btn btn-outline-light social-btn" aria-label="Telegram"><i class="bi bi-telegram"></i></a>
+                    <a href="/contacts.html" class="btn btn-outline-light social-btn" aria-label="VK"><i class="bi bi-vk"></i></a>
+                    <a href="/reels.html" class="btn btn-outline-light social-btn" aria-label="Инфостенд"><i class="bi bi-play-btn"></i></a>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-2 mb-4">
@@ -240,17 +293,17 @@
             </div>
             <div class="col-md-6 col-lg-4 mb-4">
                 <h6 class="fw-bold mb-3">Контакты</h6>
-                <ul class="list-unstyled small" style="color:#cbd5e0">
-                    <li class="mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> г. Москва, ул. Ветеринарная, д. 15</li>
-                    <li class="mb-2"><i class="bi bi-telephone-fill text-primary"></i> +7 (999) 123-45-67</li>
-                    <li class="mb-2"><i class="bi bi-envelope-fill text-primary"></i> info@simbavet.ru</li>
-                    <li class="mb-2"><i class="bi bi-clock-fill text-primary"></i> Пн-Вс: 9:00 — 21:00</li>
+                <ul class="list-unstyled small" style="color:#cbd5e1">
+                    <li class="mb-2"><i class="bi bi-geo-alt-fill text-accent me-1"></i> г. Москва, ул. Ветеринарная, д. 15</li>
+                    <li class="mb-2"><i class="bi bi-telephone-fill text-accent me-1"></i> +7 (999) 123-45-67</li>
+                    <li class="mb-2"><i class="bi bi-envelope-fill text-accent me-1"></i> info@simbavet.ru</li>
+                    <li class="mb-2"><i class="bi bi-clock-fill text-accent me-1"></i> Пн-Вс: 9:00 — 21:00</li>
                 </ul>
             </div>
         </div>
         <hr class="border-secondary mt-2 mb-3">
         <div class="text-center">
-            <p class="small mb-0" style="color:#718096">&copy; 2024 ВетКлиника «Симба». Сделано с <i class="bi bi-heart-fill text-danger"></i> для ваших питомцев</p>
+            <p class="small mb-0" style="color:#94a3b8">&copy; 2026 ВетКлиника «Симба». Забота о каждом питомце</p>
         </div>
     </div>
 </footer>
@@ -259,6 +312,55 @@
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
 <script>
+    async function loadHomeServicesAndDoctors() {
+        try {
+            const [servicesRes, doctorsRes] = await Promise.all([
+                API.get('/services').catch(() => null),
+                API.get('/doctors').catch(() => null)
+            ]);
+
+            const services = servicesRes?.success ? (servicesRes.services || []).slice(0, 3) : [];
+            const doctors = doctorsRes?.success ? (doctorsRes.doctors || []) : [];
+
+            if (services.length === 0) return; // Оставляем базовые карточки-превью
+
+            const container = document.getElementById('homeServices');
+            if (!container) return;
+
+            container.innerHTML = services.map((s, idx) => {
+                const doc = doctors[idx % doctors.length];
+                const docAvatar = doc ? safeUrl(doc.avatarUrl) : '';
+                const docName = doc ? `${escapeHtml(doc.userFirstName)} ${escapeHtml(doc.userLastName)}` : '';
+                const desc = (s.serviceDescription || '').trim();
+
+                return `
+                <div class="col-12 col-md-4">
+                    <a href="/service.html?id=${encodeURIComponent(s.serviceId)}" class="text-decoration-none">
+                        <div class="service-bento-card">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <h5 class="fw-bold text-navy mb-1">${escapeHtml(s.serviceName)}</h5>
+                                    <div class="service-price-pill">от ${Number(s.servicePrice).toLocaleString()} ₽</div>
+                                </div>
+                                ${docAvatar ? `
+                                    <img src="${docAvatar}" alt="${docName}" title="${docName}" class="service-bento-avatar">
+                                ` : `
+                                    <span class="service-bento-icon"><i class="bi bi-heart-pulse"></i></span>
+                                `}
+                            </div>
+                            <p class="text-muted small mt-3 mb-3">
+                                ${desc ? escapeHtml(desc.substring(0, 95)) + (desc.length > 95 ? '...' : '') : 'Приём, диагностика и индивидуальные рекомендации врача.'}
+                            </p>
+                            <span class="fw-semibold small text-primary">Подробнее <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('Ошибка загрузки услуг на главной:', e);
+        }
+    }
+
     async function loadLatestPosts() {
         try {
             const data = await API.get('/blog?limit=3');
@@ -273,37 +375,37 @@
                     return `
                     <div class="col-12 col-md-4">
                         <a href="/post.html?id=${encodeURIComponent(post.postId)}" class="text-decoration-none">
-                            <div class="card blog-card border-0 shadow-sm h-100">
-                                <div class="position-relative overflow-hidden" style="height:180px">
+                            <div class="card blog-card shadow-sm h-100">
+                                <div class="position-relative overflow-hidden" style="height:185px">
                                     ${coverSrc ? `
                                         <img src="${coverSrc}" class="w-100 h-100" alt="${escapeHtml(post.postTitle)}" style="object-fit:cover">
                                     ` : `
-                                        <div class="bg-light d-flex align-items-center justify-content-center h-100">
-                                            <i class="bi bi-image text-muted fs-1"></i>
+                                        <div class="bg-cyan-soft d-flex align-items-center justify-content-center h-100">
+                                            <i class="bi bi-newspaper text-primary fs-1"></i>
                                         </div>
                                     `}
                                     ${isReel ? `
-                                        <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-2">
+                                        <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-2 rounded-pill">
                                             <i class="bi bi-play-fill"></i> Рилс
                                         </span>
                                     ` : ''}
                                 </div>
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex gap-2 mb-2 flex-wrap">
-                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                        <span class="badge bg-cyan-soft rounded-pill">
                                             ${isReel ? '🎬 Рилс' : '📝 Статья'}
                                         </span>
-                                        <span class="badge bg-light text-muted">
+                                        <span class="badge bg-light text-muted rounded-pill">
                                             <i class="bi bi-calendar"></i> ${new Date(post.createDate).toLocaleDateString('ru-RU')}
                                         </span>
                                     </div>
-                                    <h5 class="card-title fw-bold text-dark">${escapeHtml(post.postTitle)}</h5>
+                                    <h5 class="card-title fw-bold text-navy">${escapeHtml(post.postTitle)}</h5>
                                     <p class="card-text text-muted small flex-grow-1">
                                         ${escapeHtml((post.postContent || '').substring(0, 100))}${post.postContent && post.postContent.length > 100 ? '...' : ''}
                                     </p>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
                                         <small class="text-muted"><i class="bi bi-eye"></i> ${post.postViews || 0}</small>
-                                        <small class="text-primary">Читать <i class="bi bi-arrow-right"></i></small>
+                                        <small class="text-primary fw-semibold">Читать <i class="bi bi-arrow-right"></i></small>
                                     </div>
                                 </div>
                             </div>
@@ -322,12 +424,8 @@
         }
     }
 
-    window.addEventListener('scroll', () => {
-        const nav = document.getElementById('mainNav');
-        if (nav) nav.classList.toggle('navbar-scrolled', window.scrollY > 50);
-    });
-
     document.addEventListener('DOMContentLoaded', () => {
+        loadHomeServicesAndDoctors();
         loadLatestPosts();
     });
 </script>

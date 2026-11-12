@@ -6,31 +6,51 @@
     <title>Пост | ВетКлиника «Симба»</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/"><i class="bi bi-heart-pulse-fill"></i> Симба</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand" href="/"><i class="bi bi-heart-pulse-fill"></i> Симба</a>
+        <div class="d-flex align-items-center gap-2 d-lg-none">
+            <a href="/cart.html" class="nav-icon-btn" aria-label="Корзина">
+                <i class="bi bi-cart3"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count" style="display:none">0</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Меню">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
         <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1">
                 <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
                 <li class="nav-item"><a class="nav-link" href="/shop.html">Магазин</a></li>
                 <li class="nav-item"><a class="nav-link" href="/services.html">Услуги</a></li>
                 <li class="nav-item"><a class="nav-link active" href="/reels.html">Инфостенд</a></li>
                 <li class="nav-item"><a class="nav-link" href="/doctors.html">Сотрудники</a></li>
-                <li class="nav-item"><a class="nav-link" href="/gallery.html">Галерея</a></li>
-                <li class="nav-item"><a class="nav-link" href="/certificates.html">Сертификаты</a></li>
-                <li class="nav-item"><a class="nav-link" href="/contacts.html">Контакты</a></li>
-                <li class="nav-item ms-lg-3" id="userMenu">
-                    <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="/login.html"><i class="bi bi-person"></i> Войти</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">О клинике</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/gallery.html"><i class="bi bi-images me-2 text-primary"></i>Галерея</a></li>
+                        <li><a class="dropdown-item" href="/certificates.html"><i class="bi bi-award me-2 text-primary"></i>Сертификаты</a></li>
+                        <li><a class="dropdown-item" href="/contacts.html"><i class="bi bi-geo-alt me-2 text-primary"></i>Контакты</a></li>
+                    </ul>
                 </li>
             </ul>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <a href="/cart.html" class="nav-icon-btn d-none d-lg-inline-flex" aria-label="Корзина" title="Корзина">
+                    <i class="bi bi-cart3"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count" style="display:none">0</span>
+                </a>
+                <a href="/contacts.html" class="nav-icon-btn d-none d-lg-inline-flex" aria-label="Контакты" title="Контакты и звонок">
+                    <i class="bi bi-telephone"></i>
+                </a>
+                <div id="userMenu">
+                    <a class="btn btn-nav-auth btn-sm rounded-pill px-3" href="/login.html"><i class="bi bi-person"></i> Войти</a>
+                </div>
+            </div>
         </div>
     </div>
 </nav>
@@ -55,15 +75,20 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6 col-lg-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-heart-pulse-fill text-primary"></i> Симба</h5>
-                <p class="small mb-3" style="color:#cbd5e0">Ветеринарная клиника с полным спектром услуг.</p>
+                <h5 class="fw-bold mb-3"><i class="bi bi-heart-pulse-fill text-accent"></i> Симба</h5>
+                <p class="small mb-3" style="color:#cbd5e1">Ветеринарная клиника с полным спектром услуг. Современное оборудование, опытные врачи, любовь и забота о каждом питомце.</p>
+                <div class="d-flex gap-2">
+                    <a href="/contacts.html" class="btn btn-outline-light social-btn" aria-label="Telegram"><i class="bi bi-telegram"></i></a>
+                    <a href="/contacts.html" class="btn btn-outline-light social-btn" aria-label="VK"><i class="bi bi-vk"></i></a>
+                    <a href="/reels.html" class="btn btn-outline-light social-btn" aria-label="Инфостенд"><i class="bi bi-play-btn"></i></a>
+                </div>
             </div>
             <div class="col-6 col-md-3 col-lg-2 mb-4">
                 <h6 class="fw-bold mb-3">Разделы</h6>
                 <ul class="list-unstyled small">
                     <li class="mb-2"><a href="/shop.html" class="footer-link">Магазин</a></li>
                     <li class="mb-2"><a href="/services.html" class="footer-link">Услуги</a></li>
-                    <li class="mb-2"><a href="/blog.html" class="footer-link">Инфостенд</a></li>
+                    <li class="mb-2"><a href="/reels.html" class="footer-link">Инфостенд</a></li>
                     <li class="mb-2"><a href="/doctors.html" class="footer-link">Сотрудники</a></li>
                 </ul>
             </div>
@@ -77,15 +102,17 @@
             </div>
             <div class="col-md-6 col-lg-4 mb-4">
                 <h6 class="fw-bold mb-3">Контакты</h6>
-                <ul class="list-unstyled small" style="color:#cbd5e0">
-                    <li class="mb-2"><i class="bi bi-telephone-fill text-primary"></i> +7 (999) 123-45-67</li>
-                    <li class="mb-2"><i class="bi bi-envelope-fill text-primary"></i> info@simbavet.ru</li>
+                <ul class="list-unstyled small" style="color:#cbd5e1">
+                    <li class="mb-2"><i class="bi bi-geo-alt-fill text-accent me-1"></i> г. Москва, ул. Ветеринарная, д. 15</li>
+                    <li class="mb-2"><i class="bi bi-telephone-fill text-accent me-1"></i> +7 (999) 123-45-67</li>
+                    <li class="mb-2"><i class="bi bi-envelope-fill text-accent me-1"></i> info@simbavet.ru</li>
+                    <li class="mb-2"><i class="bi bi-clock-fill text-accent me-1"></i> Пн-Вс: 9:00 — 21:00</li>
                 </ul>
             </div>
         </div>
         <hr class="border-secondary mt-2 mb-3">
         <div class="text-center">
-            <p class="small mb-0" style="color:#718096">&copy; 2024 ВетКлиника «Симба»</p>
+            <p class="small mb-0" style="color:#94a3b8">&copy; 2026 ВетКлиника «Симба». Забота о каждом питомце</p>
         </div>
     </div>
 </footer>

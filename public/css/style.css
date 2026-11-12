@@ -1,25 +1,36 @@
-/* ==================== ПЕРЕМЕННЫЕ ==================== */
+/* ==================== ПЕРЕМЕННЫЕ (MODERN BENTO SIMBA) ==================== */
 :root {
-    --primary: #2196F3;
-    --primary-light: #64B5F6;
-    --primary-dark: #0D47A1;
-    --accent: #00BCD4;
+    --bg-page: #F6F9FC;
+    --surface: #FFFFFF;
 
-    --white: #FFFFFF;
-    --light: #F1F5F9;
-    --gray-200: #E2E8F0;
-    --gray-600: #718096;
-    --gray-800: #2D3748;
-    --gray-900: #1A202C;
-
-    --success: #4CAF50;
-    --warning: #FF9800;
+    --navy: #0F3D8A;
+    --navy-dark: #0A2A66;
+    --primary: #1E64D8;
+    --primary-light: #5A9BFF;
+    --accent: #FF6B4A;
+    --accent-hover: #E85939;
     --info: #00BCD4;
 
-    --font-main: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-    --shadow: 0 4px 16px rgba(0,0,0,0.06);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+    --cyan-soft: #EBF4FF;
+    --coral-soft: #FFF1ED;
+
+    --white: #FFFFFF;
+    --light: #F6F9FC;
+    --gray-100: #F1F5F9;
+    --gray-200: #E2E8F0;
+    --gray-600: #64748B;
+    --gray-700: #334155;
+    --gray-800: #1E293B;
+    --gray-900: #0B1B3B;
+
+    --success: #16A34A;
+    --warning: #F59E0B;
+
+    --font-main: 'Onest', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.04);
+    --shadow: 0 8px 28px rgba(15, 61, 138, 0.06);
+    --shadow-lg: 0 18px 42px rgba(15, 61, 138, 0.11);
+    --border-soft: 1px solid rgba(15, 61, 138, 0.07);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,9 +43,9 @@ html {
 body {
     font-family: var(--font-main);
     color: var(--gray-800);
-    background: var(--white);
+    background: var(--bg-page);
     overflow-x: hidden;
-    padding-top: 64px;
+    padding-top: 72px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -54,140 +65,418 @@ footer.footer {
     margin-top: auto;
 }
 
-/* ==================== НАВБАР ==================== */
+/* Базовые компоненты */
+.card {
+    border-radius: 20px;
+    border: var(--border-soft);
+}
+
+.btn {
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--navy);
+    border-color: var(--navy);
+}
+
+.btn-accent {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #fff !important;
+    box-shadow: 0 8px 20px rgba(255, 107, 74, 0.25);
+}
+
+.btn-accent:hover,
+.btn-accent:focus {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(255, 107, 74, 0.34);
+}
+
+.btn-outline-navy {
+    border: 1.5px solid rgba(15, 61, 138, 0.22);
+    color: var(--navy-dark);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.btn-outline-navy:hover {
+    background: #fff;
+    border-color: var(--navy);
+    color: var(--navy);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.text-navy { color: var(--navy-dark) !important; }
+.text-accent { color: var(--accent) !important; }
+.bg-coral-soft { background-color: var(--coral-soft) !important; color: var(--accent-hover) !important; }
+.bg-cyan-soft { background-color: var(--cyan-soft) !important; color: var(--navy) !important; }
+
+/* ==================== НАВБАР (СВЕТЛЫЙ BENTO) ==================== */
 #mainNav {
-    background: var(--primary-dark);
-    padding: 10px 0;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(15, 61, 138, 0.08);
+    padding: 12px 0;
     z-index: 1050;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    transition: box-shadow 0.25s ease, background 0.25s ease;
 }
 
 #mainNav.navbar-scrolled {
-    background: rgba(13, 71, 161, 0.98);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 30px rgba(0,0,0,0.25);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 10px 30px rgba(15, 61, 138, 0.08);
 }
 
 .navbar-brand {
-    font-size: 1.3rem;
-    letter-spacing: -0.5px;
-    color: #fff !important;
+    font-size: 1.32rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--navy-dark) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.navbar-brand i { color: var(--accent); }
+.navbar-brand i {
+    color: var(--accent);
+    font-size: 1.35rem;
+}
 
 #mainNav .nav-link {
-    color: rgba(255,255,255,0.85) !important;
+    color: var(--gray-700) !important;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     padding: 8px 14px !important;
     border-radius: 50px;
     transition: all 0.2s;
 }
 
 #mainNav .nav-link:hover,
-#mainNav .nav-link.active {
-    color: #fff !important;
-    background: rgba(255,255,255,0.12);
+#mainNav .nav-link.active,
+#mainNav .nav-item.dropdown .nav-link.show {
+    color: var(--navy) !important;
+    background: rgba(30, 100, 216, 0.08);
+    font-weight: 600;
 }
 
-#mainNav .btn-outline-light {
-    border: 2px solid rgba(255,255,255,0.7);
+#mainNav .dropdown-menu {
+    border-radius: 16px;
+    border: var(--border-soft);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    margin-top: 8px;
+}
+
+#mainNav .dropdown-item {
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+#mainNav .dropdown-item:hover,
+#mainNav .dropdown-item.active {
+    background: var(--cyan-soft);
+    color: var(--navy);
+}
+
+.nav-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    color: var(--navy-dark);
+    border: 1px solid rgba(15, 61, 138, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.nav-icon-btn:hover {
+    background: var(--cyan-soft);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.nav-icon-btn .cart-count {
+    background: var(--accent) !important;
+    color: #fff;
+    font-size: 0.68rem;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-nav-auth {
+    background: var(--primary);
+    border: 1px solid var(--primary);
     color: #fff !important;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
+    padding: 8px 18px;
 }
 
-#mainNav .btn-outline-light:hover {
-    background: rgba(255,255,255,0.2);
-    border-color: #fff;
+.btn-nav-auth:hover,
+.btn-nav-auth:focus {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff !important;
 }
 
-.navbar-toggler { border-color: rgba(255,255,255,0.3); }
+.navbar-toggler {
+    border: 1px solid rgba(15, 61, 138, 0.16);
+    padding: 6px 10px;
+    border-radius: 12px;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(30, 100, 216, 0.15);
+}
 
 .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(15, 61, 138, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
-/* ==================== HERO ==================== */
-.hero-section {
+/* ==================== HERO BENTO (ГЛАВНАЯ) ==================== */
+.hero-bento {
     position: relative;
-    min-height: calc(100vh - 64px);
-    background: linear-gradient(135deg, #0D47A1 0%, #1565C0 40%, #1E88E5 100%);
-    padding: 50px 0 90px;
-    margin-top: 0;
+    background:
+        radial-gradient(circle at 8% 12%, rgba(30, 100, 216, 0.07) 0%, transparent 45%),
+        radial-gradient(circle at 92% 18%, rgba(255, 107, 74, 0.08) 0%, transparent 42%),
+        var(--bg-page);
+    padding: 36px 0 48px;
     flex: none !important;
 }
 
-.hero-section::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at 30% 40%, rgba(0,188,212,0.15) 0%, transparent 50%);
-    pointer-events: none;
+.hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid rgba(15, 61, 138, 0.1);
+    color: var(--navy-dark);
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-sm);
 }
 
-.hero-content { position: relative; z-index: 2; }
-
-.hero-content h1 {
-    font-size: 1.9rem;
-    line-height: 1.2;
-    letter-spacing: -0.5px;
+.hero-pill i {
+    color: var(--primary);
 }
 
-.text-accent { color: var(--accent); }
+.hero-bento h1 {
+    font-size: clamp(2rem, 3.8vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--navy-dark);
+}
 
-.hero-stats { padding-top: 0.5rem; }
+.hero-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--gray-600);
+    max-width: 470px;
+}
 
-.hero-image-wrapper {
+/* Bento-мозаика справа */
+.bento-mosaic {
+    display: grid;
+    grid-template-columns: 1.2fr 0.85fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px;
+}
+
+.bento-photo-card {
+    grid-row: span 2;
     position: relative;
-    z-index: 2;
-    display: inline-block;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--cyan-soft);
+    box-shadow: var(--shadow);
+    min-height: 390px;
+    border: var(--border-soft);
 }
 
-.hero-image {
-    width: 300px;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 6px solid rgba(255,255,255,0.25);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-
-.hero-wave {
-    position: absolute;
-    bottom: -1px;
-    left: 0;
+.bento-photo-card img {
     width: 100%;
-    line-height: 0;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform 0.6s ease;
 }
 
-.hero-wave svg { width: 100%; height: auto; }
+.bento-photo-card:hover img {
+    transform: scale(1.03);
+}
+
+.bento-metrics-card {
+    background: linear-gradient(150deg, #0F3D8A 0%, #1552B8 100%);
+    color: #fff;
+    border-radius: 24px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 14px 32px rgba(15, 61, 138, 0.2);
+}
+
+.bento-metric-value {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+}
+
+.bento-metric-label {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.bento-shop-card {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: linear-gradient(160deg, #FFFFFF 0%, #EBF4FF 100%);
+    border: var(--border-soft);
+    box-shadow: var(--shadow);
+    padding: 18px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-decoration: none;
+    color: var(--navy-dark);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    min-height: 188px;
+}
+
+.bento-shop-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    color: var(--navy-dark);
+}
+
+.bento-shop-thumb {
+    width: 100%;
+    height: 92px;
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.bento-shop-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bento-pickup-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 50px;
+    text-align: center;
+    align-self: flex-start;
+}
 
 /* ==================== СЕКЦИИ ==================== */
 section { position: relative; }
 
-.section-padding { padding: 50px 0; }
+.section-padding { padding: 56px 0; }
 
 .section-header h2 {
-    font-size: 1.6rem;
-    letter-spacing: -0.5px;
-    margin-bottom: 0.5rem;
+    font-size: clamp(1.45rem, 2.5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--navy-dark);
+    margin-bottom: 0.35rem;
 }
 
-.bg-light { background-color: var(--light) !important; }
+.bg-light { background-color: var(--bg-page) !important; }
 .bg-white { background-color: var(--white) !important; }
 
-/* ==================== КАРТОЧКИ УСЛУГ ==================== */
+/* ==================== КАРТОЧКИ УСЛУГ НА ГЛАВНОЙ (BENTO) ==================== */
+.service-bento-card {
+    background: var(--surface);
+    border-radius: 22px;
+    border: var(--border-soft);
+    box-shadow: var(--shadow-sm);
+    padding: 22px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.service-bento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.service-bento-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--cyan-soft);
+    flex-shrink: 0;
+}
+
+.service-bento-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--cyan-soft);
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.service-price-pill {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Старый класс service-card для совместимости */
 .service-card {
     border-radius: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     background: var(--white);
     height: 100%;
 }
 
 .service-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-lg) !important;
 }
 
@@ -202,70 +491,92 @@ section { position: relative; }
     transition: transform 0.3s;
 }
 
-.service-card:hover .icon-box { transform: scale(1.15); }
-
-.service-card .card-title {
-    color: var(--gray-900);
-    transition: color 0.2s;
-    font-size: 1rem;
-}
-
-.service-card:hover .card-title { color: var(--primary); }
+.service-card:hover .icon-box { transform: scale(1.1); }
+.service-card .card-title { color: var(--navy-dark); font-size: 1rem; }
 
 /* ==================== О КЛИНИКЕ ==================== */
+.about-bento-wrap {
+    background: var(--surface);
+    border-radius: 28px;
+    border: var(--border-soft);
+    box-shadow: var(--shadow);
+    padding: 28px;
+}
+
 .about-image-wrapper {
     overflow: hidden;
     border-radius: 20px;
+    height: 100%;
+    min-height: 280px;
 }
 
 .about-image-wrapper img {
     width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
-.about-badge {
-    animation: badgeBounce 2s ease-in-out infinite;
-}
-
-@keyframes badgeBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+.feature-chip {
+    background: var(--bg-page);
+    border: var(--border-soft);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--gray-800);
 }
 
 /* ==================== БЛОГ КАРТОЧКИ ==================== */
 .blog-card {
     border-radius: 20px;
     overflow: hidden;
-    transition: all 0.3s;
+    transition: all 0.25s ease;
     background: var(--white);
+    border: var(--border-soft);
 }
 
 .blog-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
     box-shadow: var(--shadow-lg) !important;
 }
 
-.blog-card .card-img-top {
-    transition: transform 0.5s;
+.blog-card .card-img-top,
+.blog-card img {
+    transition: transform 0.45s ease;
     object-fit: cover;
 }
 
-.blog-card:hover .card-img-top { transform: scale(1.05); }
+.blog-card:hover img { transform: scale(1.04); }
 
 /* ==================== CTA ==================== */
-.cta-section {
-    background: linear-gradient(135deg, var(--primary-dark), #1565C0);
+.cta-bento-card {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 55%, var(--primary) 100%);
+    border-radius: 28px;
+    padding: 46px 32px;
+    color: #fff;
     position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(15, 61, 138, 0.2);
 }
 
-.cta-section .btn-light {
-    color: var(--primary-dark);
-    transition: all 0.3s;
+.cta-bento-card::after {
+    content: '';
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    right: -80px;
+    top: -80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 74, 0.28) 0%, transparent 70%);
+    pointer-events: none;
 }
 
-.cta-section .btn-light:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+.cta-section {
+    background: linear-gradient(135deg, var(--navy-dark), var(--primary));
+    position: relative;
 }
 
 /* ==================== ФУТЕР ==================== */
@@ -283,7 +594,7 @@ section { position: relative; }
 }
 
 .footer-link {
-    color: #cbd5e0 !important;
+    color: #cbd5e1 !important;
     transition: all 0.2s;
     display: inline-block;
     text-decoration: none;
@@ -302,26 +613,27 @@ section { position: relative; }
     align-items: center;
     justify-content: center;
     border-radius: 50% !important;
-    transition: all 0.3s;
-    color: #cbd5e0 !important;
-    border-color: #4a5568 !important;
+    transition: all 0.25s;
+    color: #cbd5e1 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .social-btn:hover {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
     color: #fff !important;
     transform: translateY(-2px);
 }
 
-/* ==================== КАРТОЧКА ВРАЧА ==================== */
+/* ==================== КАРТОЧКИ ВНУТРЕННИХ СТРАНИЦ ==================== */
 .doctor-card {
-    border-radius: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 22px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--surface);
 }
 
 .doctor-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
     box-shadow: var(--shadow-lg) !important;
 }
 
@@ -336,12 +648,12 @@ section { position: relative; }
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid var(--primary);
-    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.2);
+    border: 4px solid var(--cyan-soft);
+    box-shadow: 0 6px 20px rgba(30, 100, 216, 0.16);
     transition: transform 0.3s;
 }
 
-.doctor-card:hover .doctor-avatar { transform: scale(1.05); }
+.doctor-card:hover .doctor-avatar { transform: scale(1.04); }
 
 .social-doc-btn {
     width: 36px;
@@ -350,72 +662,48 @@ section { position: relative; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s;
+    transition: all 0.25s;
 }
 
 .social-doc-btn:hover { transform: translateY(-2px); }
 
-/* ==================== КАРТОЧКА УСЛУГИ ==================== */
 .service-detail-card {
-    border-radius: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 22px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     background: var(--white);
 }
 
 .service-detail-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
     box-shadow: var(--shadow-lg) !important;
 }
 
 .service-icon-circle { transition: transform 0.3s; }
-.service-detail-card:hover .service-icon-circle { transform: scale(1.1); }
+.service-detail-card:hover .service-icon-circle { transform: scale(1.08); }
 
-/* ==================== ФИЛЬТР КАТЕГОРИЙ ==================== */
-#categoryFilter button {
-    transition: all 0.3s;
-}
-
+#categoryFilter button { transition: all 0.25s; }
 #categoryFilter button:hover { transform: translateY(-2px); }
 
-/* ==================== КАЛЕНДАРЬ (расписание) ==================== */
-.calendar-day { transition: all 0.2s; }
-
-.calendar-day:hover:not([disabled]) {
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.doctor-option { transition: all 0.2s; }
-.doctor-option:hover { background: rgba(33, 150, 243, 0.06); }
-
-.slot-card { transition: all 0.2s; }
-.slot-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-/* ==================== ГАЛЕРЕЯ ==================== */
 .album-card {
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    transition: all 0.3s;
+    transition: all 0.25s;
 }
 
 .album-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
     box-shadow: var(--shadow-lg) !important;
 }
 
-.album-card .card-img-top { transition: transform 0.5s; }
-.album-card:hover .card-img-top { transform: scale(1.08); }
+.album-card .card-img-top { transition: transform 0.45s; }
+.album-card:hover .card-img-top { transform: scale(1.06); }
 
 #lightboxModal .modal-content { background: transparent; }
 #lightboxImage { transition: opacity 0.3s; }
 
-/* ==================== СЕРТИФИКАТЫ ==================== */
 .cert-card {
-    border-radius: 16px;
-    transition: all 0.3s;
+    border-radius: 20px;
+    transition: all 0.25s;
 }
 
 .cert-card:hover {
@@ -424,23 +712,23 @@ section { position: relative; }
 }
 
 .cert-icon { transition: transform 0.3s; }
-.cert-card:hover .cert-icon { transform: scale(1.1); }
+.cert-card:hover .cert-icon { transform: scale(1.08); }
 
-/* ==================== ТОВАРЫ ==================== */
 .product-card {
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    transition: all 0.3s;
+    transition: all 0.25s;
+    background: var(--surface);
 }
 
 .product-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg) !important;
 }
-/* ==================== КОНТАКТЫ ==================== */
+
 .contact-card {
-    border-radius: 16px;
-    transition: all 0.3s;
+    border-radius: 20px;
+    transition: all 0.25s;
 }
 
 .contact-card:hover {
@@ -458,75 +746,49 @@ section { position: relative; }
     transition: transform 0.3s;
 }
 
-.contact-card:hover .contact-icon {
-    transform: scale(1.1);
-}
+.contact-card:hover .contact-icon { transform: scale(1.08); }
+
 /* ==================== АДАПТИВ ==================== */
+@media (max-width: 767px) {
+    body { padding-top: 66px; }
 
-/* Телефон */
-@media (max-width: 575px) {
-    body { padding-top: 60px; }
+    .hero-bento { padding: 20px 0 36px; }
+    .hero-bento h1 { font-size: 1.95rem; }
 
-    #mainNav { padding: 8px 0; }
-
-    .hero-section { min-height: auto; padding: 40px 0 80px; }
-
-    .hero-content h1 { font-size: 1.6rem; }
-    .hero-content .lead { font-size: 0.85rem; }
-    .hero-content .btn { font-size: 0.85rem; padding: 10px 18px !important; }
-    .hero-stats { justify-content: center; text-align: center; gap: 1rem !important; }
-    .hero-stats .vr { display: none; }
-
-    .hero-image-wrapper { display: none; }
-
-    .section-padding { padding: 40px 0; }
-    .section-header h2 { font-size: 1.3rem; }
-
-    .icon-box { width: 48px; height: 48px; }
-    .icon-box i { font-size: 1.3rem !important; }
-    .service-card .card-title { font-size: 0.9rem; }
-    .service-card .card-text { font-size: 0.75rem; }
-
-    .about-badge { display: none; }
-
-    .footer { text-align: center; }
-    .footer .row > div { margin-bottom: 1.5rem; }
-    .footer h6 { margin-bottom: 0.8rem !important; }
-}
-
-/* Планшет */
-@media (min-width: 576px) and (max-width: 991px) {
-    body { padding-top: 62px; }
-
-    .hero-section { padding: 60px 0 90px; }
-    .hero-content h1 { font-size: 2.2rem; }
-    .hero-image { width: 250px; height: 250px; }
-
-    .section-padding { padding: 60px 0; }
-    .section-header h2 { font-size: 1.8rem; }
-    .icon-box { width: 64px; height: 64px; }
-}
-
-/* Десктоп */
-@media (min-width: 992px) {
-    body { padding-top: 70px; }
-
-    #mainNav { padding: 6px 0; }
-
-    .hero-section {
-        min-height: calc(100vh - 70px);
-        padding: 80px 0 120px;
+    .bento-mosaic {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 12px;
     }
 
-    .hero-content h1 { font-size: 3.2rem; line-height: 1.15; }
-    .hero-image { width: 380px; height: 380px; }
+    .bento-photo-card {
+        grid-column: span 2;
+        grid-row: span 1;
+        min-height: 240px;
+        max-height: 280px;
+    }
 
-    .section-padding { padding: 80px 0; }
-    .section-header h2 { font-size: 2.2rem; }
-    .icon-box { width: 72px; height: 72px; }
+    .bento-metrics-card,
+    .bento-shop-card {
+        min-height: 165px;
+        padding: 16px;
+    }
+
+    .bento-metric-value { font-size: 1.45rem; }
+    .about-bento-wrap { padding: 20px; border-radius: 22px; }
+    .cta-bento-card { padding: 34px 20px; border-radius: 22px; }
+    .section-padding { padding: 40px 0; }
+
+    .footer { text-align: center; }
+    .footer .d-flex.gap-2 { justify-content: center; }
 }
 
-@media (min-width: 1200px) {
-    .hero-content h1 { font-size: 3.5rem; }
-    .hero-image { width: 420px; height: 420px; }
+@media (min-width: 768px) and (max-width: 991px) {
+    .bento-photo-card { min-height: 340px; }
+}
+
+@media (min-width: 992px) {
+    .hero-bento { padding: 48px 0 56px; }
+    .bento-photo-card { min-height: 410px; }
+    .section-padding { padding: 68px 0; }
 }

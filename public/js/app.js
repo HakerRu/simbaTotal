@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     updateCartCount();
     highlightCurrentPage();
+
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('mainNav');
+        if (nav) nav.classList.toggle('navbar-scrolled', window.scrollY > 24);
+    }, { passive: true });
 });
 
 // Проверка авторизации
@@ -19,7 +24,7 @@ async function checkAuth() {
     }
 }
 
-// Обновление меню
+// Обновление меню пользователя в шапке
 function updateUserMenu(user) {
     const userMenu = document.getElementById('userMenu');
     if (!userMenu) return;
@@ -27,7 +32,7 @@ function updateUserMenu(user) {
     if (user) {
         userMenu.innerHTML = `
             <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm rounded-pill px-3 dropdown-toggle" 
+                <button class="btn btn-nav-auth btn-sm rounded-pill px-3 dropdown-toggle" 
                         type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-person-circle"></i> ${escapeHtml(user.userFirstName)}
                 </button>
@@ -41,7 +46,7 @@ function updateUserMenu(user) {
                         </a></li>
                     ` : ''}
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#" onclick="logout()">
+                    <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
                         <i class="bi bi-box-arrow-right"></i> Выйти
                     </a></li>
                 </ul>
@@ -49,7 +54,7 @@ function updateUserMenu(user) {
         `;
     } else {
         userMenu.innerHTML = `
-            <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="/login.html">
+            <a class="btn btn-nav-auth btn-sm rounded-pill px-3" href="/login.html">
                 <i class="bi bi-person"></i> Войти
             </a>
         `;
@@ -70,22 +75,57 @@ async function logout() {
 async function updateCartCount() {
     try {
         const data = await API.get('/shop/cart/count');
-        const badge = document.querySelector('.cart-count');
-        if (badge && data.count > 0) {
-            badge.textContent = data.count;
-            badge.style.display = 'inline';
-        }
+        document.querySelectorAll('.cart-count').forEach(badge => {
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
     } catch (error) {
         // не авторизован
     }
 }
 
-// Активная ссылка
+// Активная ссылка в шапке
 function highlightCurrentPage() {
-    const currentPath = window.location.pathname;
-    document.querySelectorAll('.nav-link').forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
+    const path = window.location.pathname || '/';
+    const sectionMap = {
+        '/': '/',
+        '/index.html': '/',
+        '/shop.html': '/shop.html',
+        '/product.html': '/shop.html',
+        '/cart.html': '/shop.html',
+        '/checkout.html': '/shop.html',
+        '/services.html': '/services.html',
+        '/service.html': '/services.html',
+        '/reels.html': '/reels.html',
+        '/blog.html': '/reels.html',
+        '/post.html': '/reels.html',
+        '/doctors.html': '/doctors.html',
+        '/doctor.html': '/doctors.html',
+        '/gallery.html': '/gallery.html',
+        '/certificates.html': '/certificates.html',
+        '/contacts.html': '/contacts.html'
+    };
+
+    const target = sectionMap[path];
+    if (!target) return;
+
+    document.querySelectorAll('#mainNav .nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === target) {
             link.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('#mainNav .dropdown-item').forEach(item => {
+        const match = item.getAttribute('href') === target;
+        item.classList.toggle('active', match);
+        if (match) {
+            const parentToggle = item.closest('.dropdown')?.querySelector('.nav-link');
+            if (parentToggle) parentToggle.classList.add('active');
         }
     });
 }
