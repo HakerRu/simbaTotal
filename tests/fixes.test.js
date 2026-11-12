@@ -479,6 +479,91 @@ describe('models/Order & controllers/shop.controller', () => {
         assert.deepEqual(res.body.slots, { '09:00': 4, '10:30': 2 });
         assert.equal(res.body.maxPerSlot, 4);
     });
+
+    it('Order.create persists pickupAddress and shopController.createOrder validates allowed branches', async () => {
+        let missingRes = createMockRes();
+        await shopController.createOrder({
+            user: { userId: '1' },
+            body: {
+                customerName: 'Анна',
+                customerPhone: '+7 (904) 384-55-45',
+                pickupDate: '2099-01-01',
+                pickupTime: '12:00'
+            }
+        }, missingRes);
+        assert.equal(missingRes.statusCode, 400);
+
+        let invalidBranchRes = createMockRes();
+        await shopController.createOrder({
+            user: { userId: '1' },
+            body: {
+                customerName: 'Анна',
+                customerPhone: '+7 (904) 384-55-45',
+                pickupAddress: 'г. Москва, ул. Ветеринарная, д. 15',
+                pickupDate: '2099-01-01',
+                pickupTime: '12:00'
+            }
+        }, invalidBranchRes);
+        assert.equal(invalidBranchRes.statusCode, 400);
+
+        const queries = [];
+        dbConnectHandler = async () => ({
+            async query(sql, params) {
+                queries.push({ sql, params });
+                if (sql.includes('FROM cart_items')) {
+                    return {
+                        rows: [{
+                            productId: '3',
+                            quantity: 2,
+                            productName: 'Корм',
+                            productPrice: '500',
+                            productDiscountPrice: null,
+                            stockQuantity: 10,
+                            isActive: true
+                        }]
+                    };
+                }
+                if (sql.includes('COUNT(*)::int as count')) {
+                    return { rows: [{ count: 0 }] };
+                }
+                if (sql.includes('UPDATE products')) {
+                    return { rows: [{ productId: '3' }], rowCount: 1 };
+                }
+                if (sql.includes('INSERT INTO orders')) {
+                    return {
+                        rows: [{
+                            orderId: '77',
+                            orderNumber: params[0],
+                            pickupAddress: params[4],
+                            pickupDate: params[5],
+                            pickupTime: params[6],
+                            totalAmount: params[7]
+                        }]
+                    };
+                }
+                return { rows: [], rowCount: 1 };
+            },
+            release() {}
+        });
+
+        let okRes = createMockRes();
+        await shopController.createOrder({
+            user: { userId: '1' },
+            body: {
+                customerName: 'Анна',
+                customerPhone: '+7 (904) 384-55-45',
+                pickupAddress: 'г. Нижний Тагил, ул. Носова, 1',
+                pickupDate: '2099-01-01',
+                pickupTime: '12:00'
+            }
+        }, okRes);
+        assert.equal(okRes.statusCode, 201);
+        assert.equal(okRes.body.success, true);
+        assert.equal(okRes.body.order.pickupAddress, 'г. Нижний Тагил, ул. Носова, 1');
+        const insertOrder = queries.find((q) => q.sql.includes('INSERT INTO orders'));
+        assert.ok(insertOrder);
+        assert.equal(insertOrder.params[4], 'г. Нижний Тагил, ул. Носова, 1');
+    });
 });
 
 describe('controllers/blog.controller', () => {

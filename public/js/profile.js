@@ -85,6 +85,7 @@ async function loadOrders() {
                         <small class="text-muted">${new Date(order.pickupDate).toLocaleDateString('ru-RU')} ${escapeHtml(order.pickupTime?.substring(0,5))}</small>
                         <span class="badge bg-${order.orderStatus === 'pending' ? 'warning' : order.orderStatus === 'ready' ? 'info' : order.orderStatus === 'paid' ? 'success' : 'secondary'}">${escapeHtml(order.orderStatus)}</span>
                     </div>
+                    ${order.pickupAddress ? `<small class="text-muted d-block"><i class="bi bi-geo-alt"></i> ${escapeHtml(order.pickupAddress)}</small>` : ''}
                     <small class="text-muted">${Number(order.totalAmount).toLocaleString()} ₽</small>
                 </div>
             `).join('');

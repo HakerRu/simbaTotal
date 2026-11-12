@@ -8,7 +8,7 @@ class HttpError extends Error {
 }
 
 class Order {
-    static async create({ orderNumber, userId, customerName, customerPhone, pickupDate, pickupTime, orderNotes }) {
+    static async create({ orderNumber, userId, customerName, customerPhone, pickupAddress, pickupDate, pickupTime, orderNotes }) {
         const client = await db.pool.connect();
 
         try {
@@ -69,9 +69,9 @@ class Order {
             }
 
             const orderResult = await client.query(
-                `INSERT INTO orders ("orderNumber", "userId", "customerName", "customerPhone", "pickupDate", "pickupTime", "totalAmount", "orderNotes", "orderStatus")
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending') RETURNING *`,
-                [orderNumber, userId, customerName, customerPhone, pickupDate, pickupTime, totalAmount.toFixed(2), orderNotes || null]
+                `INSERT INTO orders ("orderNumber", "userId", "customerName", "customerPhone", "pickupAddress", "pickupDate", "pickupTime", "totalAmount", "orderNotes", "orderStatus")
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending') RETURNING *`,
+                [orderNumber, userId, customerName, customerPhone, pickupAddress || null, pickupDate, pickupTime, totalAmount.toFixed(2), orderNotes || null]
             );
 
             const order = orderResult.rows[0];

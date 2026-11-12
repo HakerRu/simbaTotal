@@ -70,7 +70,7 @@ async function loadService(id) {
                         <a href="/contacts.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
                             <i class="bi bi-calendar-check"></i> Записаться на приём
                         </a>
-                        <a href="tel:+79991234567" class="btn btn-outline-primary rounded-pill px-4">
+                        <a href="tel:+73435460645" class="btn btn-outline-primary rounded-pill px-4">
                             <i class="bi bi-telephone"></i> Позвонить
                         </a>
                     </div>

@@ -40,9 +40,15 @@ const productValidator = [
     body('stockQuantity').isInt({ min: 0 }).withMessage('Количество должно быть положительным'),
 ];
 
+const PICKUP_ADDRESSES = [
+    'г. Нижний Тагил, Ленинградский пр-т, 20',
+    'г. Нижний Тагил, ул. Носова, 1',
+];
+
 const orderValidator = [
     body('customerName').trim().isLength({ min: 2 }).withMessage('Введите имя'),
     body('customerPhone').matches(/^\+?[0-9\s\-\(\)]{7,20}$/).withMessage('Некорректный номер'),
+    body('pickupAddress').trim().isIn(PICKUP_ADDRESSES).withMessage('Выберите адрес самовывоза'),
     body('pickupDate').isDate().withMessage('Выберите дату'),
     body('pickupTime').matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('Выберите время'),
 ];

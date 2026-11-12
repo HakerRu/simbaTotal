@@ -143,6 +143,7 @@ function renderOrders(orders) {
                     <th>Номер</th>
                     <th>Клиент</th>
                     <th>Телефон</th>
+                    <th>Филиал</th>
                     <th>Дата выдачи</th>
                     <th>Сумма</th>
                     <th>Статус</th>
@@ -153,6 +154,7 @@ function renderOrders(orders) {
                         <td><strong>${escapeHtml(o.orderNumber)}</strong></td>
                         <td>${escapeHtml(o.customerName)}</td>
                         <td>${escapeHtml(o.customerPhone)}</td>
+                        <td class="small">${escapeHtml(o.pickupAddress || '—')}</td>
                         <td>${new Date(o.pickupDate).toLocaleDateString('ru-RU')} ${escapeHtml(o.pickupTime?.substring(0,5) || '')}</td>
                         <td class="fw-bold">${Number(o.totalAmount).toLocaleString()} ₽</td>
                         <td>
@@ -254,6 +256,7 @@ function showOrderDetails(orderId) {
                         <h6 class="fw-bold mb-3"><i class="bi bi-calendar-check text-primary"></i> Самовывоз</h6>
                         <p class="mb-1"><strong>${new Date(order.pickupDate).toLocaleDateString('ru-RU')}</strong></p>
                         <p class="mb-1 text-muted">${escapeHtml(order.pickupTime?.substring(0,5) || '')}</p>
+                        ${order.pickupAddress ? `<p class="mb-2 small"><i class="bi bi-geo-alt text-primary"></i> ${escapeHtml(order.pickupAddress)}</p>` : ''}
                         <span class="badge bg-${st.color}">${escapeHtml(st.text)}</span>
                     </div>
                 </div>

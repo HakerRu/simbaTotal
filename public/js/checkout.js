@@ -75,8 +75,14 @@ async function generateTimeSlots() {
         return;
     }
 
+    const [year, month, day] = date.split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const startHour = isWeekend ? 10 : 11;
+    const endHour = isWeekend ? 16 : 20;
+
     const slots = [];
-    for (let h = 9; h < 21; h++) {
+    for (let h = startHour; h < endHour; h++) {
         for (let m = 0; m < 60; m += 15) {
             slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
         }
@@ -142,16 +148,18 @@ async function submitOrder() {
 
     const customerName = document.getElementById('customerName').value.trim();
     const customerPhone = document.getElementById('customerPhone').value.trim();
+    const pickupAddressEl = document.querySelector('input[name="pickupAddress"]:checked');
+    const pickupAddress = pickupAddressEl ? pickupAddressEl.value : '';
     const pickupDate = document.getElementById('pickupDate').value;
     const pickupTime = checkoutState.selectedTime;
     const orderNotes = document.getElementById('orderNotes').value.trim();
 
     alert.style.display = 'none';
 
-    if (!customerName || !customerPhone || !pickupDate || !pickupTime) {
+    if (!customerName || !customerPhone || !pickupAddress || !pickupDate || !pickupTime) {
         alert.style.display = 'block';
         alert.className = 'alert alert-danger py-2 small';
-        alert.textContent = 'Заполните все обязательные поля';
+        alert.textContent = 'Заполните все обязательные поля и выберите филиал самовывоза';
         return;
     }
 
@@ -162,13 +170,14 @@ async function submitOrder() {
         const data = await API.post('/shop/orders', {
             customerName,
             customerPhone,
+            pickupAddress,
             pickupDate,
             pickupTime,
             orderNotes
         });
 
         if (data.success) {
-            window.location.href = `/order-success.html?number=${data.order.orderNumber}`;
+            window.location.href = `/order-success.html?number=${encodeURIComponent(data.order.orderNumber)}&address=${encodeURIComponent(pickupAddress)}`;
         }
     } catch (e) {
         alert.style.display = 'block';

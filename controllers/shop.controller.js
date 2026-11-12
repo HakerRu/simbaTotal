@@ -264,12 +264,23 @@ exports.clearCart = async (req, res) => {
 };
 
 // ==================== ЗАКАЗЫ ====================
+const ALLOWED_PICKUP_ADDRESSES = [
+    'г. Нижний Тагил, Ленинградский пр-т, 20',
+    'г. Нижний Тагил, ул. Носова, 1'
+];
+
+exports.ALLOWED_PICKUP_ADDRESSES = ALLOWED_PICKUP_ADDRESSES;
+
 exports.createOrder = async (req, res) => {
     try {
-        const { customerName, customerPhone, pickupDate, pickupTime, orderNotes } = req.body;
+        const { customerName, customerPhone, pickupAddress, pickupDate, pickupTime, orderNotes } = req.body;
 
-        if (!customerName || !customerPhone || !pickupDate || !pickupTime) {
+        if (!customerName || !customerPhone || !pickupAddress || !pickupDate || !pickupTime) {
             return res.status(400).json({ success: false, message: 'Заполните все поля' });
+        }
+
+        if (!ALLOWED_PICKUP_ADDRESSES.includes(pickupAddress)) {
+            return res.status(400).json({ success: false, message: 'Выберите корректный адрес самовывоза' });
         }
 
         const todayLocal = new Date().toLocaleDateString('en-CA');
@@ -284,6 +295,7 @@ exports.createOrder = async (req, res) => {
             userId: req.user.userId,
             customerName,
             customerPhone,
+            pickupAddress,
             pickupDate,
             pickupTime,
             orderNotes
