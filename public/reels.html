@@ -14,38 +14,75 @@
             overflow: hidden;
             padding: 0 !important;
         }
-        .reels-filters {
+        .reels-topbar {
             position: fixed;
-            top: 16px;
+            top: 14px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 8px;
-            background: rgba(0,0,0,0.4);
-            padding: 6px;
+            max-width: calc(100vw - 110px);
+        }
+        .reels-mode-switch {
+            display: inline-flex;
+            gap: 4px;
+            background: rgba(15, 23, 42, 0.58);
+            padding: 4px;
+            border-radius: 50px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .reels-mode-link {
+            color: rgba(255, 255, 255, 0.78);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .reels-mode-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .reels-mode-link.active {
+            background: #fff;
+            color: #0F3D8A;
+        }
+        .reels-filters {
+            display: flex;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.42);
+            padding: 5px;
             border-radius: 50px;
             backdrop-filter: blur(10px);
         }
         .reels-filters button {
             background: transparent;
             border: none;
-            color: rgba(255,255,255,0.7);
-            padding: 8px 18px;
+            color: rgba(255, 255, 255, 0.75);
+            padding: 6px 14px;
             border-radius: 50px;
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
         }
         .reels-filters button.active {
-            background: #2196F3;
+            background: #1E64D8;
             color: #fff;
         }
         .reels-filters button:hover:not(.active) {
             color: #fff;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.12);
         }
         .reels-container {
             height: 100vh;
@@ -229,14 +266,20 @@
 </head>
 <body>
 
-<a href="/" class="reel-back" title="На главную">
+<a href="/blog.html" class="reel-back" title="В ленту Инфостенда">
     <i class="bi bi-arrow-left"></i>
 </a>
 
-<div class="reels-filters" id="reelsFilters">
-    <button class="active" data-type="all">Все</button>
-    <button data-type="article">📝 Статьи</button>
-    <button data-type="reel">🎬 Рилсы</button>
+<div class="reels-topbar">
+    <div class="reels-mode-switch" role="tablist" aria-label="Вкладки Инфостенда">
+        <a href="/blog.html" class="reels-mode-link"><i class="bi bi-grid-3x3-gap"></i> Главная</a>
+        <a href="/reels.html" class="reels-mode-link active"><i class="bi bi-play-btn-fill"></i> Reels</a>
+    </div>
+    <div class="reels-filters" id="reelsFilters">
+        <button class="active" data-type="all">Все</button>
+        <button data-type="article">📝 Статьи</button>
+        <button data-type="reel">🎬 Рилсы</button>
+    </div>
 </div>
 
 <div class="reels-container" id="reelsContainer">

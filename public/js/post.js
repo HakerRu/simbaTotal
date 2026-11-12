@@ -92,9 +92,12 @@ async function loadPost(id) {
                         </div>
                     ` : ''}
                     
-                    <div class="mt-4">
-                        <a href="/blog.html" class="btn btn-outline-primary rounded-pill px-4">
-                            <i class="bi bi-arrow-left"></i> Все посты
+                    <div class="mt-4 d-flex flex-wrap gap-2">
+                        <a href="/blog.html#post-${Number(p.postId)}" class="btn btn-outline-primary rounded-pill px-4">
+                            <i class="bi bi-grid-3x3-gap me-1"></i> В ленту
+                        </a>
+                        <a href="/reels.html?id=${Number(p.postId)}" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-play-btn me-1"></i> Смотреть в Reels
                         </a>
                     </div>
                 </div>

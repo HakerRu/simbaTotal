@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Инфостенд | ВетКлиника «Симба»</title>
+    <title>Инфостенд — Главная | ВетКлиника «Симба»</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,7 +29,13 @@
                 <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
                 <li class="nav-item"><a class="nav-link" href="/shop.html">Магазин</a></li>
                 <li class="nav-item"><a class="nav-link" href="/services.html">Услуги</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/reels.html">Инфостенд</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Инфостенд</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item active" href="/blog.html"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Главная</a></li>
+                        <li><a class="dropdown-item" href="/reels.html"><i class="bi bi-play-btn me-2 text-primary"></i>Reels</a></li>
+                    </ul>
+                </li>
                 <li class="nav-item"><a class="nav-link" href="/doctors.html">Сотрудники</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">О клинике</a>
@@ -68,81 +74,84 @@
     </div>
 </section>
 
-<!-- ЗАГОЛОВОК -->
-<section class="pt-2 pb-4">
+<!-- ИНФОСТЕНД В СТИЛЕ INSTAGRAM -->
+<section class="pt-2 pb-5">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="fw-bold mb-1">Инфостенд</h1>
-                <p class="text-muted mb-0">Полезные статьи, новости и советы от наших врачей</p>
-            </div>
-            <div class="col-md-4 mt-3 mt-md-0">
-                <div class="d-flex gap-2 justify-content-md-end">
-                    <button class="btn btn-outline-primary rounded-pill px-3 filter-btn active" data-type="all">
-                        <i class="bi bi-grid"></i> Все
+        <div class="ig-feed-wrap">
+            <!-- Шапка профиля клиники -->
+            <div class="ig-profile-card mb-3">
+                <div class="d-flex align-items-center gap-3 gap-md-4 mb-3">
+                    <div class="ig-ring">
+                        <div class="ig-profile-avatar">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <h1 class="h4 fw-bold text-navy mb-0">simba_vet</h1>
+                            <i class="bi bi-patch-check-fill text-primary" title="Официальный инфостенд клиники"></i>
+                            <span class="badge bg-coral-soft rounded-pill small">Нижний Тагил</span>
+                        </div>
+                        <p class="text-muted small mb-2 mt-1">Ветеринарная клиника «Симба» • 15+ лет заботы</p>
+                        <div class="d-flex gap-3 small">
+                            <span><strong id="totalPostsCount">—</strong> публикаций</span>
+                            <span class="text-muted">•</span>
+                            <span class="text-muted">Советы врачей и кейсы</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Переключатель вкладок (Главная / Reels) -->
+                <div class="ig-tabs-bar mb-3">
+                    <a href="/blog.html" class="ig-tab-link active">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                        <span>Главная</span>
+                    </a>
+                    <a href="/reels.html" class="ig-tab-link">
+                        <i class="bi bi-play-btn"></i>
+                        <span>Reels</span>
+                    </a>
+                </div>
+
+                <!-- Фильтр внутри ленты -->
+                <div class="d-flex gap-2 flex-wrap ig-filter-pills">
+                    <button class="btn btn-primary rounded-pill px-3 filter-btn active" data-type="all">
+                        <i class="bi bi-layers me-1"></i> Всё в ленте
                     </button>
                     <button class="btn btn-outline-primary rounded-pill px-3 filter-btn" data-type="article">
-                        <i class="bi bi-file-text"></i> Статьи
+                        <i class="bi bi-file-text me-1"></i> Статьи
                     </button>
                     <button class="btn btn-outline-primary rounded-pill px-3 filter-btn" data-type="reel">
-                        <i class="bi bi-film"></i> Рилсы
+                        <i class="bi bi-film me-1"></i> Рилсы
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
-</section>
 
-<!-- ЛЕНТА ПОСТОВ -->
-<section class="pb-5">
-    <div class="container">
-        <div class="row g-4" id="postsGrid">
-            <!-- Скелетоны -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm h-100 placeholder-card">
-                    <div class="card-img-top placeholder-glow" style="height:220px;background:var(--gray-200)"></div>
-                    <div class="card-body">
-                        <div class="d-flex gap-2 mb-2">
-                            <span class="badge placeholder-glow" style="width:60px">&nbsp;</span>
-                            <span class="badge placeholder-glow" style="width:80px">&nbsp;</span>
-                        </div>
-                        <h5 class="placeholder-glow"><span class="placeholder col-10"></span></h5>
-                        <p class="placeholder-glow"><span class="placeholder col-12"></span><span class="placeholder col-8"></span></p>
+            <!-- Лента постов друг за другом -->
+            <div id="postsFeed">
+                <div class="ig-post-card p-3">
+                    <div class="d-flex align-items-center gap-2 mb-3 placeholder-glow">
+                        <span class="placeholder rounded-circle" style="width:40px;height:40px"></span>
+                        <span class="placeholder col-4"></span>
                     </div>
+                    <div class="placeholder-glow rounded-4" style="height:320px;background:var(--gray-200)"></div>
+                </div>
+                <div class="ig-post-card p-3">
+                    <div class="d-flex align-items-center gap-2 mb-3 placeholder-glow">
+                        <span class="placeholder rounded-circle" style="width:40px;height:40px"></span>
+                        <span class="placeholder col-5"></span>
+                    </div>
+                    <div class="placeholder-glow rounded-4" style="height:280px;background:var(--gray-200)"></div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm h-100 placeholder-card">
-                    <div class="card-img-top placeholder-glow" style="height:220px;background:var(--gray-200)"></div>
-                    <div class="card-body">
-                        <div class="d-flex gap-2 mb-2">
-                            <span class="badge placeholder-glow" style="width:60px">&nbsp;</span>
-                            <span class="badge placeholder-glow" style="width:80px">&nbsp;</span>
-                        </div>
-                        <h5 class="placeholder-glow"><span class="placeholder col-10"></span></h5>
-                        <p class="placeholder-glow"><span class="placeholder col-12"></span><span class="placeholder col-8"></span></p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm h-100 placeholder-card">
-                    <div class="card-img-top placeholder-glow" style="height:220px;background:var(--gray-200)"></div>
-                    <div class="card-body">
-                        <div class="d-flex gap-2 mb-2">
-                            <span class="badge placeholder-glow" style="width:60px">&nbsp;</span>
-                            <span class="badge placeholder-glow" style="width:80px">&nbsp;</span>
-                        </div>
-                        <h5 class="placeholder-glow"><span class="placeholder col-10"></span></h5>
-                        <p class="placeholder-glow"><span class="placeholder col-12"></span><span class="placeholder col-8"></span></p>
-                    </div>
-                </div>
+
+            <!-- Кнопка дозагрузки ленты -->
+            <div class="text-center mt-4" id="loadMoreWrap" style="display:none">
+                <button class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold" id="loadMoreBtn">
+                    <i class="bi bi-arrow-down-circle me-1"></i> Загрузить ещё посты
+                </button>
             </div>
         </div>
-
-        <!-- Пагинация -->
-        <nav class="mt-5" id="paginationNav" style="display:none">
-            <ul class="pagination justify-content-center" id="paginationList"></ul>
-        </nav>
     </div>
 </section>
 
@@ -159,7 +168,7 @@
                 <ul class="list-unstyled small">
                     <li class="mb-2"><a href="/shop.html" class="footer-link">Магазин</a></li>
                     <li class="mb-2"><a href="/services.html" class="footer-link">Услуги</a></li>
-                    <li class="mb-2"><a href="/reels.html" class="footer-link">Инфостенд</a></li>
+                    <li class="mb-2"><a href="/blog.html" class="footer-link">Инфостенд</a></li>
                     <li class="mb-2"><a href="/doctors.html" class="footer-link">Сотрудники</a></li>
                 </ul>
             </div>

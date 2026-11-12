@@ -1,8 +1,19 @@
 let reels = [];
 let currentType = 'all';
 let observer = null;
+let pendingTargetId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    pendingTargetId = urlParams.get('id');
+    const typeParam = urlParams.get('type');
+    if (typeParam && ['all', 'article', 'reel'].includes(typeParam)) {
+        currentType = typeParam;
+        document.querySelectorAll('#reelsFilters button').forEach(b => {
+            b.classList.toggle('active', b.dataset.type === currentType);
+        });
+    }
+
     setupFilters();
     await loadReels();
 });
@@ -50,9 +61,30 @@ async function loadReels() {
         }
 
         reels = data.posts;
+
+        if (pendingTargetId && !reels.some(p => String(p.postId) === String(pendingTargetId))) {
+            try {
+                const single = await API.get('/blog/' + encodeURIComponent(pendingTargetId));
+                if (single.success && single.post) {
+                    reels.unshift(single.post);
+                }
+            } catch (e) {}
+        }
+
         renderReels();
         setupObserver();
-        container.scrollTop = 0;
+
+        if (pendingTargetId) {
+            const targetEl = container.querySelector(`.reel-item[data-id="${CSS.escape(String(pendingTargetId))}"]`);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'auto' });
+            } else {
+                container.scrollTop = 0;
+            }
+            pendingTargetId = null;
+        } else {
+            container.scrollTop = 0;
+        }
     } catch (e) {
         console.error('Ошибка загрузки:', e);
         container.innerHTML = `
@@ -102,13 +134,18 @@ function renderReels() {
                     <div class="reel-action-count">${likesCount}</div>
                 </div>
                 <div class="text-center">
-                    <button class="reel-action" onclick="openPost(${Number(post.postId)})">
-                        <i class="bi bi-eye"></i>
+                    <button class="reel-action" onclick="openPost(${Number(post.postId)})" title="Открыть статью полностью">
+                        <i class="bi bi-file-text"></i>
                     </button>
                     <div class="reel-action-count">${post.postViews || 0}</div>
                 </div>
                 <div class="text-center">
-                    <button class="reel-action" onclick="shareReel(${Number(post.postId)})">
+                    <a href="/blog.html#post-${Number(post.postId)}" class="reel-action text-decoration-none" title="Открыть в ленте">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </a>
+                </div>
+                <div class="text-center">
+                    <button class="reel-action" onclick="shareReel(${Number(post.postId)})" title="Поделиться">
                         <i class="bi bi-send"></i>
                     </button>
                 </div>
@@ -209,7 +246,7 @@ async function toggleLike(postId, btn) {
 }
 
 function openPost(postId) {
-    window.location.href = '/post.html?id=' + postId;
+    window.location.href = '/post.html?id=' + encodeURIComponent(postId) + '&from=reels';
 }
 
 function shareReel(postId) {
