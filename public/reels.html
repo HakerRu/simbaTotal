@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Инфостенд | ВетКлиника «Симба»</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background: #000;
+            overflow: hidden;
+            padding: 0 !important;
+        }
+        .reels-filters {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .reels-filters button {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .reels-filters button.active {
+            background: #2196F3;
+            color: #fff;
+        }
+        .reels-filters button:hover:not(.active) {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        .reels-container {
+            height: 100vh;
+            width: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .reels-container::-webkit-scrollbar {
+            display: none;
+        }
+        .reel-item {
+            height: 100vh;
+            scroll-snap-align: start;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+        .reel-video, .reel-image {
+            max-height: 100vh;
+            max-width: 100%;
+            width: auto;
+            height: 100%;
+            object-fit: contain;
+        }
+        .reel-text-only {
+            width: 100%;
+            height: 100%;
+            padding: 100px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #0D47A1, #2196F3);
+            color: #fff;
+            text-align: center;
+        }
+        .reel-text-only h2 {
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .reel-text-only p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .reel-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 80px 32px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            color: #fff;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .reel-overlay > * {
+            pointer-events: auto;
+        }
+        .reel-actions {
+            position: absolute;
+            right: 16px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            z-index: 10;
+        }
+        .reel-action {
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s;
+        }
+        .reel-action:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.25);
+        }
+        .reel-action-count {
+            color: #fff;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            text-align: center;
+        }
+        .reel-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .reel-author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            background: #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+        }
+        .reel-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+        }
+        .reel-desc {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+            max-height: 60px;
+            overflow: hidden;
+        }
+        .reel-type-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+            margin-bottom: 8px;
+        }
+        .reel-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            color: #fff;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .reel-back:hover {
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+        }
+        .reels-empty {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .reel-overlay {
+                padding: 16px 70px 24px 16px;
+            }
+            .reel-text-only h2 {
+                font-size: 1.5rem;
+            }
+            .reel-text-only p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<a href="/" class="reel-back" title="На главную">
+    <i class="bi bi-arrow-left"></i>
+</a>
+
+<div class="reels-filters" id="reelsFilters">
+    <button class="active" data-type="all">Все</button>
+    <button data-type="article">📝 Статьи</button>
+    <button data-type="reel">🎬 Рилсы</button>
+</div>
+
+<div class="reels-container" id="reelsContainer">
+    <div class="reels-empty">
+        <div>
+            <div class="spinner-border text-light" role="status"></div>
+            <p class="mt-3">Загрузка...</p>
+        </div>
+    </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/reels.js"></script>
+</body>
+</html>

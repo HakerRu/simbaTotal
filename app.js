@@ -1,0 +1,75 @@
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+require('dotenv').config();
+
+const authRoutes = require('./routes/auth.routes');
+const shopRoutes = require('./routes/shop.routes');
+const servicesRoutes = require('./routes/services.routes');
+const adminRoutes = require('./routes/admin.routes');
+const doctorsRoutes = require('./routes/doctors.routes');
+const profileRoutes = require('./routes/profile.routes');
+const app = express();
+const uploadRoutes = require('./routes/upload.routes');
+const blogRoutes = require('./routes/blog.routes');
+const certificatesRoutes = require('./routes/certificates.routes');
+
+const galleryRoutes = require('./routes/gallery.routes');
+
+// Middleware сначала
+app.use(cors({
+    origin: process.env.BASE_URL || 'http://localhost:3000',
+    credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ...
+app.use('/api/upload', uploadRoutes);
+// API роуты
+app.use('/api/certificates', certificatesRoutes);
+app.use('/api/gallery', galleryRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/shop', shopRoutes);
+app.use('/api/services', servicesRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/doctors', doctorsRoutes);
+
+// ...
+app.use('/api/blog', blogRoutes);
+app.use('/api/profile', profileRoutes);
+// HTML страницы
+const pages = ['shop', 'services', 'blog', 'reels', 'schedule', 'doctors', 'doctor', 'service', 'product', 'cart', 'checkout', 'order-success', 'post', 'gallery', 'certificates', 'contacts', 'login', 'register', 'profile', 'admin'];
+pages.forEach(page => {
+    app.get(`/${page}`, (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', `${page}.html`));
+    });
+    app.get(`/${page}.html`, (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', `${page}.html`));
+    });
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 404
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+// Ошибка сервера
+app.use((err, req, res, next) => {
+    console.error('❌ Ошибка сервера:', err);
+    res.status(500).json({ success: false, message: 'Внутренняя ошибка сервера' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Сервер запущен: http://localhost:${PORT}`);
+});
+
+module.exports = app;

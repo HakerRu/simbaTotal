@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация | ВетКлиника «Симба»</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<!-- НАВИГАЦИЯ -->
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href=""><i class="bi bi-heart-pulse-fill"></i> Симба</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Меню">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                <li class="nav-item"><a class="nav-link" href="index.html">Главная</a></li>
+                <li class="nav-item"><a class="nav-link" href="/shop.html">Магазин</a></li>
+                <li class="nav-item"><a class="nav-link" href="/services.html">Услуги</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/reels.html">Инфостенд</a></li>
+                <li class="nav-item"><a class="nav-link" href="/schedule.html">Расписание</a></li>
+                <li class="nav-item"><a class="nav-link" href="/doctors.html">Сотрудники</a></li>
+                <li class="nav-item"><a class="nav-link" href="/gallery.html">Галерея</a></li>
+                <li class="nav-item"><a class="nav-link" href="/certificates.html">Сертификаты</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contacts.html">Контакты</a></li>
+                <li class="nav-item ms-lg-3" id="userMenu">
+                    <a class="btn btn-outline-light btn-sm rounded-pill px-3 active" href="/login.html"><i class="bi bi-person"></i> Войти</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ФОРМА РЕГИСТРАЦИИ -->
+<section id="registerSection" class="d-flex align-items-center justify-content-center" style="min-height:calc(100vh - 64px);padding:100px 0 60px">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill text-primary display-4"></i>
+                    <h2 class="fw-bold mt-2">Регистрация</h2>
+                    <p class="text-muted">Присоединяйтесь к нам</p>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div id="registerAlert" style="display:none"></div>
+
+                        <form id="registerForm">
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold">Имя</label>
+                                    <input type="text" class="form-control" id="regFirstName" placeholder="Иван" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold">Фамилия</label>
+                                    <input type="text" class="form-control" id="regLastName" placeholder="Иванов" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-3">
+                                <label class="form-label small fw-semibold">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-envelope text-muted"></i></span>
+                                    <input type="email" class="form-control" id="regEmail" placeholder="your@email.ru" required autocomplete="email">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Телефон</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-phone text-muted"></i></span>
+                                    <input type="tel" class="form-control" id="regPhone" placeholder="+7 (999) 123-45-67">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Пароль</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-lock text-muted"></i></span>
+                                    <input type="password" class="form-control" id="regPassword" placeholder="Минимум 6 символов" required autocomplete="new-password" minlength="6">
+                                    <button class="btn btn-outline-secondary toggle-password" type="button"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Я регистрируюсь как</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="regRole" id="roleClient" value="client" checked>
+                                        <label class="form-check-label small" for="roleClient"><i class="bi bi-person"></i> Клиент</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="regRole" id="roleDoctor" value="doctor">
+                                        <label class="form-check-label small" for="roleDoctor"><i class="bi bi-heart-pulse"></i> Врач</label>
+                                    </div>
+                                </div>
+                                <small class="text-muted" id="doctorNote" style="display:none">* Аккаунт врача будет активирован после проверки администратором</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold mt-2" id="registerBtn">
+                                <i class="bi bi-person-plus"></i> Зарегистрироваться
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <p class="text-muted small">Уже есть аккаунт? <a href="/login.html" class="fw-semibold text-primary">Войти</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- РЕЗУЛЬТАТ ПОДТВЕРЖДЕНИЯ -->
+<section id="verificationSection" style="display:none;min-height:calc(100vh - 64px);padding:100px 0 60px">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5 text-center">
+                <div id="verifySuccess" style="display:none">
+                    <i class="bi bi-check-circle-fill text-success display-1"></i>
+                    <h3 class="fw-bold mt-3">Email подтверждён!</h3>
+                    <p class="text-muted" id="verifyMessage"></p>
+                    <a href="" class="btn btn-primary rounded-pill px-4 mt-2">На главную</a>
+                </div>
+                <div id="verifyFailed" style="display:none">
+                    <i class="bi bi-x-circle-fill text-danger display-1"></i>
+                    <h3 class="fw-bold mt-3">Ошибка подтверждения</h3>
+                    <p class="text-muted" id="verifyErrorMessage"></p>
+                    <button class="btn btn-primary rounded-pill px-4 mt-2" id="resendVerificationBtn">
+                        <i class="bi bi-envelope"></i> Отправить письмо повторно
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+</body>
+</html>

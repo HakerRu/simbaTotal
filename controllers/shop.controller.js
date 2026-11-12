@@ -1,0 +1,314 @@
+const Product = require('../models/Product');
+const Category = require('../models/Category');
+const Cart = require('../models/Cart');
+const Order = require('../models/Order');
+const { slugify, generateOrderNumber } = require('../utils/helpers');
+
+// ==================== ТОВАРЫ ====================
+exports.getProducts = async (req, res) => {
+    try {
+        const { category = 'all', sort = 'default', search = '', page = 1, limit = 9 } = req.query;
+        const products = await Product.getAll({ category, sort, search, page: parseInt(page), limit: parseInt(limit) });
+        const total = await Product.getTotal({ category, search });
+
+        res.json({ success: true, products, total });
+    } catch (e) {
+        console.error('Ошибка загрузки товаров:', e);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.getProduct = async (req, res) => {
+    try {
+        const product = await Product.getById(req.params.id);
+        if (!product) return res.status(404).json({ success: false, message: 'Товар не найден' });
+        res.json({ success: true, product });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.createProduct = async (req, res) => {
+    try {
+        const product = await Product.create({ ...req.body, productSlug: slugify(req.body.productName) });
+
+        if (req.body.images && req.body.images.length > 0) {
+            await Product.addImages(product.productId, req.body.images);
+        }
+
+        res.status(201).json({ success: true, product });
+    } catch (e) {
+        console.error('Ошибка создания товара:', e);
+        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+    }
+};
+exports.updateProduct = async (req, res) => {
+    try {
+        const product = await Product.update(req.params.id, req.body);
+
+        // Если передали новые фото — заменяем
+        if (req.body.images !== undefined) {
+            await Product.deleteImages(req.params.id);
+            if (req.body.images.length > 0) {
+                await Product.addImages(req.params.id, req.body.images);
+            }
+        }
+
+        res.json({ success: true, product });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка обновления' });
+    }
+};
+
+exports.deleteProduct = async (req, res) => {
+    try {
+        await Product.delete(req.params.id);
+        res.json({ success: true, message: 'Товар удалён' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка удаления' });
+    }
+};
+
+
+exports.createCategory = async (req, res) => {
+    try {
+        const category = await Category.create({
+            categoryName: req.body.categoryName,
+            categorySlug: slugify(req.body.categoryName) + '-' + Date.now(),
+            categoryDescription: req.body.categoryDescription,
+            parentId: req.body.parentId || null
+        });
+        res.status(201).json({ success: true, category });
+    } catch (e) {
+        console.error('Ошибка создания категории:', e);
+        res.status(500).json({ success: false, message: 'Ошибка: ' + e.message });
+    }
+};
+
+exports.updateCategory = async (req, res) => {
+    try {
+        const category = await Category.update(req.params.id, {
+            categoryName: req.body.categoryName,
+            categorySlug: slugify(req.body.categoryName) + '-' + Date.now(),
+            categoryDescription: req.body.categoryDescription,
+            parentId: req.body.parentId || null
+        });
+        res.json({ success: true, category });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка обновления' });
+    }
+};
+
+exports.deleteCategory = async (req, res) => {
+    try {
+        await Category.delete(req.params.id);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка удаления' });
+    }
+};
+
+
+
+exports.getCategories = async (req, res) => {
+    try {
+        const categories = await Category.getTree();
+        res.json({ success: true, categories });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+// ==================== КОРЗИНА ====================
+exports.getCart = async (req, res) => {
+    try {
+        const items = await Cart.getItems(req.user.userId);
+        const count = await Cart.getCount(req.user.userId);
+        res.json({ success: true, items, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.getCartCount = async (req, res) => {
+    try {
+        const count = await Cart.getCount(req.user.userId);
+        res.json({ success: true, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.addToCart = async (req, res) => {
+    try {
+        const { productId, quantity = 1 } = req.body;
+        const item = await Cart.addItem(req.user.userId, productId, parseInt(quantity));
+        const count = await Cart.getCount(req.user.userId);
+        res.json({ success: true, item, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка добавления' });
+    }
+};
+
+exports.updateCartItem = async (req, res) => {
+    try {
+        const { quantity } = req.body;
+        const item = await Cart.updateQuantity(req.user.userId, req.params.productId, parseInt(quantity));
+        const count = await Cart.getCount(req.user.userId);
+        res.json({ success: true, item, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка обновления' });
+    }
+};
+
+exports.removeFromCart = async (req, res) => {
+    try {
+        await Cart.removeItem(req.user.userId, req.params.productId);
+        const count = await Cart.getCount(req.user.userId);
+        res.json({ success: true, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка удаления' });
+    }
+};
+
+exports.clearCart = async (req, res) => {
+    try {
+        await Cart.clear(req.user.userId);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка' });
+    }
+};
+
+// ==================== ЗАКАЗЫ ====================
+exports.createOrder = async (req, res) => {
+    try {
+        const { customerName, customerPhone, pickupDate, pickupTime, orderNotes } = req.body;
+
+        if (!customerName || !customerPhone || !pickupDate || !pickupTime) {
+            return res.status(400).json({ success: false, message: 'Заполните все поля' });
+        }
+
+        const cartItems = await Cart.getItems(req.user.userId);
+        if (cartItems.length === 0) {
+            return res.status(400).json({ success: false, message: 'Корзина пуста' });
+        }
+
+        const slotCount = await Order.countBySlot(pickupDate, pickupTime);
+        if (slotCount >= 4) {
+            return res.status(400).json({ success: false, message: 'Это время уже занято, выберите другое' });
+        }
+
+        const totalAmount = cartItems.reduce((sum, item) => {
+            const price = item.productDiscountPrice || item.productPrice;
+            return sum + (price * item.quantity);
+        }, 0);
+
+        const orderNumber = generateOrderNumber();
+
+        const order = await Order.create({
+            orderNumber,
+            userId: req.user.userId,
+            customerName,
+            customerPhone,
+            pickupDate,
+            pickupTime,
+            totalAmount,
+            orderNotes,
+            items: cartItems.map(i => ({
+                productId: i.productId,
+                productName: i.productName,
+                quantity: i.quantity,
+                price: i.productDiscountPrice || i.productPrice
+            }))
+        });
+
+        res.status(201).json({ success: true, order });
+    } catch (e) {
+        console.error('Ошибка создания заказа:', e);
+        res.status(500).json({ success: false, message: 'Ошибка создания заказа: ' + e.message });
+    }
+};
+
+exports.getMyOrders = async (req, res) => {
+    try {
+        const orders = await Order.getByUser(req.user.userId);
+        res.json({ success: true, orders });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.getOrder = async (req, res) => {
+    try {
+        const order = await Order.getById(req.params.id);
+        if (!order) return res.status(404).json({ success: false, message: 'Заказ не найден' });
+
+        if (order.userId !== req.user.userId && req.user.role !== 'admin' && req.user.role !== 'manager') {
+            return res.status(403).json({ success: false, message: 'Доступ запрещён' });
+        }
+
+        res.json({ success: true, order });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.getAllOrders = async (req, res) => {
+    try {
+        const orders = await Order.getAll({ status: req.query.status });
+        res.json({ success: true, orders, total: orders.length });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const order = await Order.updateStatus(req.params.id, req.body.orderStatus);
+        res.json({ success: true, order });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка обновления' });
+    }
+};
+
+exports.addProductImages = async (req, res) => {
+    try {
+        const { images } = req.body;
+        if (!images || images.length === 0) {
+            return res.status(400).json({ success: false, message: 'Фото не переданы' });
+        }
+        await Product.addImages(req.params.id, images);
+        res.json({ success: true, message: 'Фото добавлены' });
+    } catch (e) {
+        console.error('Ошибка добавления фото:', e);
+        res.status(500).json({ success: false, message: 'Ошибка' });
+    }
+};
+
+exports.deleteProductImages = async (req, res) => {
+    try {
+        await Product.deleteImages(req.params.id);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка' });
+    }
+};
+exports.deleteOrder = async (req, res) => {
+    try {
+        await Order.delete(req.params.id);
+        res.json({ success: true, message: 'Заказ удалён' });
+    } catch (e) {
+        console.error('Ошибка удаления заказа:', e);
+        res.status(500).json({ success: false, message: 'Ошибка удаления' });
+    }
+};
+exports.checkSlot = async (req, res) => {
+    try {
+        const { date, time } = req.query;
+        const count = await Order.countBySlot(date, time);
+        res.json({ success: true, available: count < 4, count });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка' });
+    }
+};
