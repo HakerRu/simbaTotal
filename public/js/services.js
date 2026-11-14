@@ -96,18 +96,18 @@ function renderServices() {
             <div class="card service-detail-card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex gap-3 mb-3">
-                        <div class="service-icon-circle bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:56px;height:56px">
-                            <i class="bi ${getIcon(service.serviceName)} fs-4 text-primary"></i>
+                        <div class="service-icon-circle bg-coral-soft rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:56px;height:56px">
+                            <i class="bi ${getIcon(service.serviceName)} fs-4 text-accent"></i>
                         </div>
                         <div>
                             <h5 class="card-title fw-bold mb-1 text-dark">${escapeHtml(service.serviceName)}</h5>
-                            <span class="badge bg-primary bg-opacity-10 text-primary">${escapeHtml(service.categoryName || 'Услуга')}</span>
+                            <span class="badge bg-coral-soft">${escapeHtml(service.categoryName || 'Услуга')}</span>
                         </div>
                     </div>
                     <p class="card-text text-muted small mb-3">${escapeHtml((service.serviceDescription || 'Описание уточняется').substring(0, 120))}...</p>
                     <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                         <div>
-                            <span class="fw-bold fs-5 text-primary">${Number(service.servicePrice).toLocaleString()} ₽</span>
+                            <span class="fw-bold fs-5 text-accent">${Number(service.servicePrice).toLocaleString()} ₽</span>
                         </div>
                         <div class="text-muted small">
                             <i class="bi bi-clock"></i> ${service.durationMinutes} мин

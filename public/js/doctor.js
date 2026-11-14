@@ -127,7 +127,7 @@ async function loadDoctor(id) {
                     </div>
 
                     <div class="mt-4">
-                        <a href="/contacts.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <a href="/contacts.html" class="btn btn-accent rounded-pill px-4 fw-semibold">
                             <i class="bi bi-calendar-check"></i> Записаться на приём
                         </a>
                     </div>

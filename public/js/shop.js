@@ -131,11 +131,11 @@ function renderProducts() {
                     </div>
                 ` : ''}
                 ${product.productDiscountPrice ? `
-                    <span class="position-absolute top-0 end-0 badge bg-danger m-2">-${Math.round((1 - product.productDiscountPrice / product.productPrice) * 100)}%</span>
+                    <span class="position-absolute top-0 end-0 badge product-discount-badge m-2">-${Math.round((1 - product.productDiscountPrice / product.productPrice) * 100)}%</span>
                 ` : ''}
             </a>
             <div class="card-body d-flex flex-column">
-                <span class="badge bg-primary bg-opacity-10 text-primary mb-2 align-self-start">${escapeHtml(product.categoryName || 'Товар')}</span>
+                <span class="badge bg-coral-soft mb-2 align-self-start">${escapeHtml(product.categoryName || 'Товар')}</span>
                 <h6 class="card-title fw-bold">
                     <a href="/product.html?id=${encodeURIComponent(product.productId)}" class="text-decoration-none text-dark">${escapeHtml(product.productName)}</a>
                 </h6>
@@ -144,12 +144,12 @@ function renderProducts() {
                     <div class="d-flex align-items-center gap-2 mb-2">
                         ${product.productDiscountPrice ? `
                             <span class="text-decoration-line-through text-muted small">${Number(product.productPrice).toLocaleString()} ₽</span>
-                            <span class="fw-bold text-danger">${Number(product.productDiscountPrice).toLocaleString()} ₽</span>
+                            <span class="fw-bold text-accent fs-5">${Number(product.productDiscountPrice).toLocaleString()} ₽</span>
                         ` : `
-                            <span class="fw-bold text-primary">${Number(product.productPrice).toLocaleString()} ₽</span>
+                            <span class="fw-bold text-navy fs-5">${Number(product.productPrice).toLocaleString()} ₽</span>
                         `}
                     </div>
-                    <button class="btn btn-primary btn-sm w-100 rounded-pill add-to-cart-btn" 
+                    <button class="btn btn-accent btn-sm w-100 rounded-pill add-to-cart-btn" 
                             data-product-id="${product.productId}"
                             ${product.stockQuantity === 0 ? 'disabled' : ''}>
                         <i class="bi bi-cart-plus"></i> 

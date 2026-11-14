@@ -213,7 +213,7 @@ function renderFeed() {
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <a href="/reels.html?id=${postId}" class="btn btn-sm ${isReel ? 'btn-primary' : 'btn-outline-primary'} rounded-pill px-3" title="Открыть в режиме Reels">
+                    <a href="/reels.html?id=${postId}" class="btn btn-sm ${isReel ? 'btn-accent' : 'btn-outline-primary'} rounded-pill px-3" title="Открыть в режиме Reels">
                         <i class="bi bi-play-btn me-1"></i>Reels
                     </a>
                 </div>
@@ -247,7 +247,7 @@ function renderFeed() {
                     </div>
                 ` : ''}
                 <div class="mt-2">
-                    <a href="/post.html?id=${postId}" class="small fw-semibold text-primary text-decoration-none">
+                    <a href="/post.html?id=${postId}" class="small fw-semibold text-accent text-decoration-none">
                         Открыть полностью <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>

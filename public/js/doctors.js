@@ -45,12 +45,12 @@ function renderDoctors(doctors) {
                     <h5 class="fw-bold mb-1 text-dark">${fullName}</h5>
                     
                     ${doc.doctorSpecialization ? `
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">${escapeHtml(doc.doctorSpecialization)}</span>
+                        <span class="badge bg-coral-soft mb-2">${escapeHtml(doc.doctorSpecialization)}</span>
                     ` : ''}
                     
                     ${doc.doctorExperienceYears ? `
                         <p class="text-muted small mb-2">
-                            <i class="bi bi-briefcase"></i> Стаж: ${escapeHtml(doc.doctorExperienceYears)} ${getYearWord(doc.doctorExperienceYears)}
+                            <i class="bi bi-briefcase text-accent"></i> Стаж: ${escapeHtml(doc.doctorExperienceYears)} ${getYearWord(doc.doctorExperienceYears)}
                         </p>
                     ` : ''}
                     
@@ -59,7 +59,7 @@ function renderDoctors(doctors) {
                     ` : ''}
                     
                     <div class="mt-auto">
-                        <span class="btn btn-primary btn-sm rounded-pill px-3">
+                        <span class="btn btn-accent btn-sm rounded-pill px-3">
                             Смотреть профиль <i class="bi bi-arrow-right"></i>
                         </span>
                     </div>

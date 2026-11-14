@@ -68,7 +68,7 @@ async function loadService(id) {
         container.innerHTML = `
             <div class="row g-4 g-lg-5">
                 <div class="col-lg-7">
-                    <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">
+                    <span class="badge bg-coral-soft mb-2 px-3 py-2 rounded-pill">
                         ${escapeHtml(s.categoryName || 'Услуга')}
                     </span>
                     <h1 class="fw-bold mb-3">${escapeHtml(s.serviceName)}</h1>
@@ -80,7 +80,7 @@ async function loadService(id) {
                     <div class="row g-3 mb-4">
                         <div class="col-sm-6">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-clock text-primary fs-4"></i>
+                                <i class="bi bi-clock text-accent fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Длительность</small>
                                     <strong>${s.durationMinutes} мин</strong>
@@ -89,17 +89,17 @@ async function loadService(id) {
                         </div>
                         <div class="col-sm-6">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-currency-exchange text-primary fs-4"></i>
+                                <i class="bi bi-currency-exchange text-accent fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Стоимость</small>
-                                    <strong class="text-primary fs-5">${Number(s.servicePrice).toLocaleString()} ₽</strong>
+                                    <strong class="text-accent fs-5">${Number(s.servicePrice).toLocaleString()} ₽</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="/contacts.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <a href="/contacts.html" class="btn btn-accent rounded-pill px-4 fw-semibold">
                             <i class="bi bi-calendar-check"></i> Записаться на приём
                         </a>
                         <a href="tel:+73435460645" class="btn btn-outline-primary rounded-pill px-4">

@@ -83,7 +83,7 @@ async function loadCart() {
                                 <span class="text-muted">Сумма:</span>
                                 <span class="fw-semibold">${Number(total).toLocaleString()} ₽</span>
                             </div>
-                            <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold" id="checkoutBtn">
+                            <button class="btn btn-accent w-100 rounded-pill py-2 fw-semibold" id="checkoutBtn">
                                 <i class="bi bi-bag-check"></i> Оформить заказ
                             </button>
                             <button class="btn btn-outline-danger w-100 rounded-pill py-2 mt-2" id="clearCartBtn">

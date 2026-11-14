@@ -85,7 +85,7 @@ async function loadProduct(id) {
                 <!-- Инфа -->
                 <div class="col-lg-6">
                     ${p.categoryName ? `
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">${escapeHtml(p.categoryName)}</span>
+                        <span class="badge bg-coral-soft mb-2 px-3 py-2 rounded-pill">${escapeHtml(p.categoryName)}</span>
                     ` : ''}
                     
                     <h1 class="fw-bold mb-3">${escapeHtml(p.productName)}</h1>
@@ -93,10 +93,10 @@ async function loadProduct(id) {
                     <div class="d-flex align-items-center gap-3 mb-3">
                         ${hasDiscount ? `
                             <span class="text-decoration-line-through text-muted fs-5">${Number(p.productPrice).toLocaleString()} ₽</span>
-                            <span class="fw-bold text-danger fs-3">${finalPrice.toLocaleString()} ₽</span>
-                            <span class="badge bg-danger">-${Math.round((1 - finalPrice / Number(p.productPrice)) * 100)}%</span>
+                            <span class="fw-bold text-accent fs-3">${finalPrice.toLocaleString()} ₽</span>
+                            <span class="badge product-discount-badge">-${Math.round((1 - finalPrice / Number(p.productPrice)) * 100)}%</span>
                         ` : `
-                            <span class="fw-bold text-primary fs-3">${finalPrice.toLocaleString()} ₽</span>
+                            <span class="fw-bold text-navy fs-3">${finalPrice.toLocaleString()} ₽</span>
                         `}
                     </div>
 
@@ -132,7 +132,7 @@ async function loadProduct(id) {
                         </div>
 
                         <div class="d-flex gap-2">
-                            <button class="btn btn-primary btn-lg rounded-pill px-4 fw-semibold" id="addToCartBtn">
+                            <button class="btn btn-accent btn-lg rounded-pill px-4 fw-semibold" id="addToCartBtn">
                                 <i class="bi bi-cart-plus"></i> В корзину
                             </button>
                             <a href="/shop.html" class="btn btn-outline-primary btn-lg rounded-pill px-4">

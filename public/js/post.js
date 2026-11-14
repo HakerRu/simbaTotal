@@ -143,7 +143,7 @@ function renderActionBar(post) {
             </div>
             <div class="d-flex align-items-center gap-3">
                 <small class="text-muted"><i class="bi bi-eye me-1"></i>${Number(post.postViews || 0)}</small>
-                <a href="/reels.html?id=${postId}" class="btn btn-sm btn-primary rounded-pill px-3">
+                <a href="/reels.html?id=${postId}" class="btn btn-sm btn-accent rounded-pill px-3">
                     <i class="bi bi-play-btn me-1"></i>В Reels
                 </a>
             </div>
@@ -255,7 +255,7 @@ async function loadPost(id, { fromReels = false } = {}) {
                             <a href="/blog.html#post-${postId}" class="btn btn-outline-primary rounded-pill px-4">
                                 <i class="bi bi-grid-3x3-gap me-1"></i> В ленту Инфостенда
                             </a>
-                            <a href="/reels.html?id=${postId}" class="btn btn-primary rounded-pill px-4">
+                            <a href="/reels.html?id=${postId}" class="btn btn-accent rounded-pill px-4">
                                 <i class="bi bi-play-btn me-1"></i> Открыть в Reels
                             </a>
                         </div>

@@ -41,9 +41,9 @@ function renderSummary() {
         <hr>
         <div class="d-flex justify-content-between mb-3">
             <span class="fw-bold">Итого:</span>
-            <span class="fw-bold text-primary fs-5">${Number(checkoutState.total).toLocaleString()} ₽</span>
+            <span class="fw-bold text-accent fs-5">${Number(checkoutState.total).toLocaleString()} ₽</span>
         </div>
-        <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold" id="confirmOrderBtn">
+        <button class="btn btn-accent w-100 rounded-pill py-2 fw-semibold" id="confirmOrderBtn">
             <i class="bi bi-check-lg"></i> Подтвердить заказ
         </button>
         <small class="text-muted d-block text-center mt-2">

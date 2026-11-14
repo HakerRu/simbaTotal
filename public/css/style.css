@@ -43,12 +43,22 @@ html {
 body {
     font-family: var(--font-main);
     color: var(--gray-800);
-    background: var(--bg-page);
+    background:
+        radial-gradient(circle at 94% 80px, rgba(255, 107, 74, 0.08) 0%, transparent 420px),
+        radial-gradient(circle at 6% 360px, rgba(30, 100, 216, 0.06) 0%, transparent 450px),
+        radial-gradient(circle at 92% 1050px, rgba(255, 107, 74, 0.06) 0%, transparent 420px),
+        var(--bg-page);
+    background-attachment: fixed;
     overflow-x: hidden;
     padding-top: 72px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+}
+
+::selection {
+    background: rgba(255, 107, 74, 0.28);
+    color: var(--navy-dark);
 }
 
 /* Чтобы контент растягивался и футер был внизу */
@@ -631,16 +641,42 @@ section { position: relative; }
     transform: translateY(-2px);
 }
 
+/* ==================== ХЛЕБНЫЕ КРОШКИ ==================== */
+.breadcrumb {
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: var(--gray-600);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--accent);
+}
+
+.breadcrumb-item.active {
+    color: var(--accent-hover);
+    font-weight: 600;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: rgba(255, 107, 74, 0.45);
+}
+
 /* ==================== КАРТОЧКИ ВНУТРЕННИХ СТРАНИЦ ==================== */
 .doctor-card {
     border-radius: 22px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s ease;
     background: var(--surface);
+    border: 1px solid rgba(15, 61, 138, 0.08);
 }
 
 .doctor-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(255, 107, 74, 0.35);
+    box-shadow: 0 16px 36px rgba(255, 107, 74, 0.12), 0 4px 14px rgba(15, 61, 138, 0.06) !important;
 }
 
 .doctor-avatar-wrapper {
@@ -654,8 +690,8 @@ section { position: relative; }
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid var(--cyan-soft);
-    box-shadow: 0 6px 20px rgba(30, 100, 216, 0.16);
+    border: 4px solid var(--coral-soft);
+    box-shadow: 0 6px 20px rgba(255, 107, 74, 0.18);
     transition: transform 0.3s;
 }
 
@@ -675,30 +711,67 @@ section { position: relative; }
 
 .service-detail-card {
     border-radius: 22px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    background: var(--white);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s ease;
+    background: var(--surface);
+    border: 1px solid rgba(15, 61, 138, 0.08);
 }
 
 .service-detail-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(255, 107, 74, 0.35);
+    box-shadow: 0 16px 36px rgba(255, 107, 74, 0.12), 0 4px 14px rgba(15, 61, 138, 0.06) !important;
 }
 
-.service-icon-circle { transition: transform 0.3s; }
+.service-icon-circle {
+    transition: transform 0.3s ease;
+    background: var(--coral-soft) !important;
+}
+.service-icon-circle i {
+    color: var(--accent) !important;
+}
 .service-detail-card:hover .service-icon-circle { transform: scale(1.08); }
 
-#categoryFilter button { transition: all 0.25s; }
-#categoryFilter button:hover { transform: translateY(-2px); }
+/* Активные фильтры и кнопки с оранжевой Bento-энергией */
+#categoryFilter button {
+    transition: all 0.25s;
+}
+#categoryFilter button:hover {
+    transform: translateY(-2px);
+}
+#categoryFilter button.active,
+#categoryFilter .btn-primary,
+.filter-btn.active,
+.filter-btn.btn-primary,
+.branch-switch-btn.btn-primary,
+.branch-switch-btn.active {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(255, 107, 74, 0.32) !important;
+}
+
+#categoryList .list-group-item.active {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(255, 107, 74, 0.25) !important;
+}
+#categoryList .list-group-item:hover:not(.active) {
+    background-color: var(--coral-soft);
+    color: var(--accent-hover);
+}
 
 .album-card {
     border-radius: 20px;
     overflow: hidden;
-    transition: all 0.25s;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    border: 1px solid rgba(15, 61, 138, 0.08);
 }
 
 .album-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(255, 107, 74, 0.35);
+    box-shadow: 0 16px 36px rgba(255, 107, 74, 0.12), 0 4px 14px rgba(15, 61, 138, 0.06) !important;
 }
 
 .album-card .card-img-top { transition: transform 0.45s; }
@@ -709,12 +782,14 @@ section { position: relative; }
 
 .cert-card {
     border-radius: 20px;
-    transition: all 0.25s;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    border: 1px solid rgba(15, 61, 138, 0.08);
 }
 
 .cert-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(255, 107, 74, 0.35);
+    box-shadow: 0 16px 36px rgba(255, 107, 74, 0.12), 0 4px 14px rgba(15, 61, 138, 0.06) !important;
 }
 
 .cert-icon { transition: transform 0.3s; }
@@ -723,23 +798,34 @@ section { position: relative; }
 .product-card {
     border-radius: 20px;
     overflow: hidden;
-    transition: all 0.25s;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
     background: var(--surface);
+    border: 1px solid rgba(15, 61, 138, 0.08);
 }
 
 .product-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(255, 107, 74, 0.35);
+    box-shadow: 0 16px 36px rgba(255, 107, 74, 0.12), 0 4px 14px rgba(15, 61, 138, 0.06) !important;
+}
+
+.product-discount-badge {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
 }
 
 .contact-card {
     border-radius: 20px;
-    transition: all 0.25s;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+    border: 1px solid rgba(15, 61, 138, 0.08);
 }
 
 .contact-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(255, 107, 74, 0.35);
+    box-shadow: 0 16px 36px rgba(255, 107, 74, 0.12), 0 4px 14px rgba(15, 61, 138, 0.06) !important;
 }
 
 .contact-icon {
@@ -753,6 +839,44 @@ section { position: relative; }
 }
 
 .contact-card:hover .contact-icon { transform: scale(1.08); }
+
+/* Кнопки основных действий на внутренних страницах */
+#contactBtn,
+#checkoutBtn,
+#confirmOrderBtn,
+#addToCartBtn,
+.add-to-cart-btn {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 20px rgba(255, 107, 74, 0.28) !important;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+#contactBtn:hover,
+#checkoutBtn:hover,
+#confirmOrderBtn:hover,
+#addToCartBtn:hover,
+.add-to-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(255, 107, 74, 0.38) !important;
+    color: #fff !important;
+}
+
+#contactBtn:active,
+#checkoutBtn:active,
+#confirmOrderBtn:active,
+#addToCartBtn:active,
+.add-to-cart-btn:active {
+    transform: translateY(0);
+}
+
+/* Фокус на полях формы */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 74, 0.18) !important;
+}
 
 /* ==================== АДАПТИВ ==================== */
 @media (max-width: 767px) {
