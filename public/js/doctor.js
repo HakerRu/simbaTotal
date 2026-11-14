@@ -33,7 +33,35 @@ async function loadDoctor(id) {
 
         const d = data.doctor;
         const fullName = escapeHtml(`${d.userFirstName || ''} ${d.userLastName || ''}`.trim());
+        const rawFullName = `${d.userFirstName || ''} ${d.userLastName || ''}`.trim();
         const avatarSrc = safeUrl(d.avatarUrl);
+
+        document.title = `${rawFullName} — ветеринарный врач клиники «Симба» (Нижний Тагил)`;
+
+        // Schema.org Person / Physician microdata для Яндекса
+        const existingSchema = document.getElementById('doctorSchemaJsonLd');
+        if (existingSchema) existingSchema.remove();
+        const schemaScript = document.createElement('script');
+        schemaScript.id = 'doctorSchemaJsonLd';
+        schemaScript.type = 'application/ld+json';
+        schemaScript.textContent = JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Person',
+            'name': rawFullName,
+            'jobTitle': d.doctorSpecialization || 'Ветеринарный врач',
+            'worksFor': {
+                '@type': 'VeterinaryCare',
+                'name': 'ВетКлиника «Симба»',
+                'telephone': '+7-3435-46-06-45',
+                'address': {
+                    '@type': 'PostalAddress',
+                    'addressLocality': 'Нижний Тагил'
+                }
+            },
+            'image': avatarSrc ? (avatarSrc.startsWith('http') ? avatarSrc : window.location.origin + avatarSrc) : undefined,
+            'description': d.doctorDescription || undefined
+        });
+        document.head.appendChild(schemaScript);
         const vkHref = safeUrl(d.vkLink);
         const tgHref = safeUrl(d.telegramLink);
         const igHref = safeUrl(d.doctorInstagram);

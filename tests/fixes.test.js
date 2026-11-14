@@ -677,6 +677,12 @@ describe('HTTP Express routes via app.js', () => {
             cookies: [`accessToken=${token}`]
         });
         assert.equal(hiddenPost.status, 404);
+
+        const sitemapRes = await requestApp('GET', '/sitemap.xml');
+        assert.equal(sitemapRes.status, 200);
+        assert.ok(sitemapRes.text.includes('<urlset'));
+        assert.ok(sitemapRes.text.includes('https://www.sim-simba.ru/'));
+        assert.ok(sitemapRes.text.includes('/services.html'));
     });
 });
 

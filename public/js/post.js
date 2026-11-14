@@ -165,7 +165,32 @@ async function loadPost(id, { fromReels = false } = {}) {
         const media = Array.isArray(p.media) ? p.media : [];
         const isReelLayout = p.postType === 'reel' || (media.length > 0 && media[0].mediaType === 'video');
 
-        document.title = `${p.postTitle} | ВетКлиника «Симба»`;
+        document.title = `${p.postTitle} | ВетКлиника «Симба» (Нижний Тагил)`;
+
+        // Schema.org BlogPosting / VideoObject microdata
+        const existingSchema = document.getElementById('postSchemaJsonLd');
+        if (existingSchema) existingSchema.remove();
+        const schemaScript = document.createElement('script');
+        schemaScript.id = 'postSchemaJsonLd';
+        schemaScript.type = 'application/ld+json';
+        const authorName = p.authorFirstName ? `${p.authorFirstName} ${p.authorLastName || ''}`.trim() : 'ВетКлиника «Симба»';
+        schemaScript.textContent = JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': isReelLayout ? 'VideoObject' : 'BlogPosting',
+            'headline': p.postTitle,
+            'name': p.postTitle,
+            'description': (p.postContent || '').substring(0, 200) || p.postTitle,
+            'datePublished': p.createDate,
+            'author': {
+                '@type': 'Person',
+                'name': authorName
+            },
+            'publisher': {
+                '@type': 'VeterinaryCare',
+                'name': 'ВетКлиника «Симба»'
+            }
+        });
+        document.head.appendChild(schemaScript);
         const breadcrumbEl = document.getElementById('postBreadcrumb');
         if (breadcrumbEl) {
             breadcrumbEl.textContent = p.postTitle.length > 36 ? `${p.postTitle.slice(0, 36)}...` : p.postTitle;

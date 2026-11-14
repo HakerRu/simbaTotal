@@ -33,6 +33,38 @@ async function loadService(id) {
 
         const s = data.service;
 
+        document.title = `${s.serviceName} в Нижнем Тагиле — цены и запись | ВетКлиника «Симба»`;
+
+        // Schema.org Service microdata для Яндекса
+        const existingSchema = document.getElementById('serviceSchemaJsonLd');
+        if (existingSchema) existingSchema.remove();
+        const schemaScript = document.createElement('script');
+        schemaScript.id = 'serviceSchemaJsonLd';
+        schemaScript.type = 'application/ld+json';
+        schemaScript.textContent = JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Service',
+            'name': s.serviceName,
+            'description': s.serviceDescription || `${s.serviceName} в ветеринарной клинике «Симба» (г. Нижний Тагил).`,
+            'provider': {
+                '@type': 'VeterinaryCare',
+                'name': 'ВетКлиника «Симба»',
+                'telephone': '+7-3435-46-06-45',
+                'address': {
+                    '@type': 'PostalAddress',
+                    'addressLocality': 'Нижний Тагил',
+                    'addressRegion': 'Свердловская область'
+                }
+            },
+            'offers': {
+                '@type': 'Offer',
+                'url': window.location.href,
+                'price': Number(s.servicePrice),
+                'priceCurrency': 'RUB'
+            }
+        });
+        document.head.appendChild(schemaScript);
+
         container.innerHTML = `
             <div class="row g-4 g-lg-5">
                 <div class="col-lg-7">

@@ -38,6 +38,35 @@ async function loadProduct(id) {
         const finalPrice = hasDiscount ? Number(p.productDiscountPrice) : Number(p.productPrice);
         const inStock = p.stockQuantity > 0;
 
+        document.title = `${p.productName} — купить в Нижнем Тагиле | Зоомагазин «Симба»`;
+
+        // Schema.org Product microdata для Яндекса
+        const existingSchema = document.getElementById('productSchemaJsonLd');
+        if (existingSchema) existingSchema.remove();
+        const schemaScript = document.createElement('script');
+        schemaScript.id = 'productSchemaJsonLd';
+        schemaScript.type = 'application/ld+json';
+        schemaScript.textContent = JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Product',
+            'name': p.productName,
+            'image': safeUrl(p.mainImage) ? [window.location.origin + safeUrl(p.mainImage)] : undefined,
+            'description': p.productDescription || `${p.productName} в зоомагазине ветклиники «Симба» (Нижний Тагил).`,
+            'offers': {
+                '@type': 'Offer',
+                'url': window.location.href,
+                'priceCurrency': 'RUB',
+                'price': finalPrice,
+                'availability': inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                'itemCondition': 'https://schema.org/NewCondition',
+                'seller': {
+                    '@type': 'VeterinaryCare',
+                    'name': 'ВетКлиника «Симба» (Нижний Тагил)'
+                }
+            }
+        });
+        document.head.appendChild(schemaScript);
+
         container.innerHTML = `
             <div class="row g-4 g-lg-5">
                 <!-- Фото -->
