@@ -1,3 +1,4 @@
+const User = require('../models/User');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Cart = require('../models/Cart');
@@ -6,6 +7,30 @@ const { uniqueSlug, generateOrderNumber } = require('../utils/helpers');
 const { deleteManyFromS3 } = require('../utils/s3');
 
 const ALLOWED_ORDER_STATUSES = new Set(['pending', 'ready', 'paid', 'cancelled']);
+
+const decorateOrder = (order) => {
+    if (!order) return order;
+    return {
+        ...order,
+        canEdit: Order.canEditOrder(order),
+        canCancel: Order.canCancelOrder(order)
+    };
+};
+
+const normalizeOrderItems = (items) => {
+    if (!Array.isArray(items) || items.length === 0 || items.length > 20) return null;
+    const merged = new Map();
+    for (const item of items) {
+        const productId = String(item?.productId || '');
+        const quantity = parseInt(item?.quantity, 10);
+        if (!/^\d+$/.test(productId) || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) return null;
+        merged.set(productId, (merged.get(productId) || 0) + quantity);
+    }
+    for (const quantity of merged.values()) {
+        if (quantity > 100) return null;
+    }
+    return [...merged.entries()].map(([productId, quantity]) => ({ productId, quantity }));
+};
 const isStaff = (req) => Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'manager'));
 
 const invalidNumber = (value) => {
@@ -283,6 +308,27 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Выберите корректный адрес самовывоза' });
         }
 
+        await Order.expireNoShows();
+        if (req.user.role !== 'admin') {
+            const account = await User.findById(req.user.userId);
+            if (!account) {
+                return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+            }
+            if (account.ordersBlocked) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Заказы закрыты после двух незаборов. Придите в клинику, менеджер или администратор откроет их снова.'
+                });
+            }
+            const active = await Order.findActive(req.user.userId);
+            if (active) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'У вас уже есть активный заказ. В течение 30 минут его можно изменить в профиле.'
+                });
+            }
+        }
+
         const todayLocal = new Date().toLocaleDateString('en-CA');
         if (pickupDate < todayLocal) {
             return res.status(400).json({ success: false, message: 'Дата самовывоза не может быть в прошлом' });
@@ -313,8 +359,9 @@ exports.createOrder = async (req, res) => {
 
 exports.getMyOrders = async (req, res) => {
     try {
+        await Order.expireNoShows();
         const orders = await Order.getByUser(req.user.userId);
-        res.json({ success: true, orders });
+        res.json({ success: true, orders: orders.map(decorateOrder) });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
@@ -335,8 +382,86 @@ exports.getOrder = async (req, res) => {
     }
 };
 
+exports.getActiveOrder = async (req, res) => {
+    try {
+        await Order.expireNoShows();
+        if (req.user.role === 'admin') {
+            return res.json({ success: true, exempt: true, ordersBlocked: false, noShowCount: 0, order: null });
+        }
+        const account = await User.findById(req.user.userId);
+        const order = await Order.findActive(req.user.userId);
+        res.json({
+            success: true,
+            exempt: false,
+            ordersBlocked: Boolean(account?.ordersBlocked),
+            noShowCount: account?.noShowCount || 0,
+            order: decorateOrder(order)
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.cancelMyOrder = async (req, res) => {
+    try {
+        const order = await Order.cancelByOwner(req.params.id, req.user.userId);
+        if (!order) return res.status(404).json({ success: false, message: 'Заказ не найден' });
+        res.json({ success: true, order: decorateOrder(order) });
+    } catch (e) {
+        if (e instanceof Order.HttpError) {
+            return res.status(e.status).json({ success: false, message: e.message });
+        }
+        res.status(500).json({ success: false, message: 'Ошибка отмены' });
+    }
+};
+
+exports.updateMyOrder = async (req, res) => {
+    try {
+        const items = normalizeOrderItems(req.body.items);
+        const pickupAddress = req.body.pickupAddress;
+        const pickupDate = req.body.pickupDate;
+        const pickupTime = req.body.pickupTime;
+        const orderNotes = String(req.body.orderNotes || '').trim();
+
+        if (!items) {
+            return res.status(400).json({ success: false, message: 'Проверьте товары и количество' });
+        }
+        if (!ALLOWED_PICKUP_ADDRESSES.includes(pickupAddress)) {
+            return res.status(400).json({ success: false, message: 'Выберите корректный адрес самовывоза' });
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(pickupDate)) || !/^([01]\d|2[0-3]):([0-5]\d)$/.test(String(pickupTime))) {
+            return res.status(400).json({ success: false, message: 'Выберите дату и время' });
+        }
+        if (orderNotes.length > 500) {
+            return res.status(400).json({ success: false, message: 'Примечание слишком длинное' });
+        }
+        const todayLocal = new Date().toLocaleDateString('en-CA');
+        if (pickupDate < todayLocal) {
+            return res.status(400).json({ success: false, message: 'Дата самовывоза не может быть в прошлом' });
+        }
+
+        const order = await Order.replaceContents(req.params.id, req.user.userId, {
+            items,
+            pickupAddress,
+            pickupDate,
+            pickupTime,
+            orderNotes
+        });
+        if (!order) return res.status(404).json({ success: false, message: 'Заказ не найден' });
+        const full = await Order.getById(order.orderId);
+        res.json({ success: true, order: decorateOrder(full) });
+    } catch (e) {
+        if (e instanceof Order.HttpError) {
+            return res.status(e.status).json({ success: false, message: e.message });
+        }
+        console.error('Ошибка изменения заказа:', e);
+        res.status(500).json({ success: false, message: 'Ошибка изменения заказа' });
+    }
+};
+
 exports.getAllOrders = async (req, res) => {
     try {
+        await Order.expireNoShows();
         const orders = await Order.getAll({ status: req.query.status });
         res.json({ success: true, orders, total: orders.length });
     } catch (e) {

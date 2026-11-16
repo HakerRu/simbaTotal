@@ -88,6 +88,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
+    const Order = require('./models/Order');
+    setInterval(() => {
+        Order.expireNoShows().catch((error) => console.error('Не удалось закрыть незабранные заказы:', error));
+    }, 60 * 1000);
     app.listen(PORT, () => {
         console.log(`🚀 Сервер запущен: http://localhost:${PORT}`);
     });

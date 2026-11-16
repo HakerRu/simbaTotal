@@ -8,6 +8,6 @@ const { doctorProfileValidator } = require('../utils/validators');
 
 router.get('/', doctorsController.getAllDoctors);
 router.get('/:id', validateId('id'), doctorsController.getDoctorById);
-router.put('/me/profile', isAuthenticated, requireRole('doctor'), doctorProfileValidator, handleValidationErrors, doctorsController.updateMyProfile);
+router.put('/me/profile', isAuthenticated, requireRole('doctor', 'manager'), doctorProfileValidator, handleValidationErrors, doctorsController.updateMyProfile);
 
 module.exports = router;

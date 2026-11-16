@@ -80,7 +80,7 @@ class User {
                  "doctorEducation", "vkLink", "telegramLink", "doctorPortfolio",
                  "doctorCertificatesList", "doctorServices", "doctorStatusText",
                  "doctorInstagram", "doctorWhatsapp", "doctorRating"
-                 FROM users WHERE role = 'doctor'`;
+                 FROM users WHERE role IN ('doctor', 'manager')`;
 
         if (activeOnly) {
             query += ` AND "doctorStatus" = 'approved' AND "isActive" = true AND "isEmailVerified" = true`;
@@ -146,6 +146,18 @@ class User {
             values.push(filters.isActive);
         }
 
+        if (filters.ordersBlocked !== undefined) {
+            paramCount++;
+            query += ` AND "ordersBlocked" = $${paramCount}`;
+            values.push(filters.ordersBlocked);
+        }
+
+        if (filters.search) {
+            paramCount++;
+            query += ` AND ("userEmail" ILIKE $${paramCount} OR "userFirstName" ILIKE $${paramCount} OR "userLastName" ILIKE $${paramCount})`;
+            values.push(`%${String(filters.search).trim().slice(0, 80)}%`);
+        }
+
         query += ` ORDER BY "createDate" DESC`;
 
         const result = await db.query(query, values);
@@ -160,7 +172,7 @@ class User {
              "doctorCertificatesList", "doctorServices", "doctorStatusText",
              "doctorInstagram", "doctorWhatsapp", "doctorRating"
              FROM users
-             WHERE "userId" = $1 AND role = 'doctor'
+             WHERE "userId" = $1 AND role IN ('doctor', 'manager')
                AND "doctorStatus" = 'approved' AND "isActive" = true AND "isEmailVerified" = true`,
             [userId]
         );
@@ -202,6 +214,67 @@ class User {
         const query = `UPDATE users SET ${updates.join(', ')} WHERE "userId" = $${paramCount} RETURNING *`;
         const result = await db.query(query, values);
         return this.toPublic(result.rows[0]);
+    }
+
+    static async setRole(userId, role) {
+        const result = await db.query(
+            `UPDATE users SET role = $1, "updateDate" = NOW() WHERE "userId" = $2 RETURNING *`,
+            [role, userId]
+        );
+        return this.toPublic(result.rows[0]);
+    }
+
+    static async searchAppointable(search) {
+        const term = `%${String(search || '').trim().slice(0, 80)}%`;
+        const result = await db.query(
+            `SELECT * FROM users
+             WHERE role IN ('doctor', 'manager')
+               AND "doctorStatus" = 'approved'
+               AND ($1 = '%%' OR "userEmail" ILIKE $1 OR "userFirstName" ILIKE $1 OR "userLastName" ILIKE $1)
+             ORDER BY role DESC, "userLastName", "userFirstName"
+             LIMIT 20`,
+            [term]
+        );
+        return result.rows.map((row) => this.toPublic(row));
+    }
+
+    static async getBlockedWithCancellations() {
+        const users = await db.query(
+            `SELECT * FROM users WHERE "ordersBlocked" = true ORDER BY "updateDate" DESC`
+        );
+        if (users.rows.length === 0) return [];
+
+        const orders = await db.query(
+            `SELECT o.*,
+             (SELECT json_agg(oi.*) FROM order_items oi WHERE oi."orderId" = o."orderId") as items
+             FROM orders o
+             WHERE o."userId" = ANY($1::bigint[]) AND o."orderStatus" = 'cancelled'
+             ORDER BY o."createDate" DESC`,
+            [users.rows.map((row) => row.userId)]
+        );
+
+        return users.rows.map((row) => ({
+            ...this.toPublic(row),
+            cancelledOrders: orders.rows.filter((order) => String(order.userId) === String(row.userId))
+        }));
+    }
+
+    static async unblockOrders(userId) {
+        const result = await db.query(
+            `UPDATE users
+             SET "ordersBlocked" = false, "noShowCount" = 0, "updateDate" = NOW()
+             WHERE "userId" = $1 AND role <> 'admin'
+             RETURNING *`,
+            [userId]
+        );
+        return this.toPublic(result.rows[0]);
+    }
+
+    static async touchProfile(userId) {
+        await db.query(
+            `UPDATE users SET "profileUpdatedAt" = NOW(), "updateDate" = NOW() WHERE "userId" = $1`,
+            [userId]
+        );
     }
 }
 

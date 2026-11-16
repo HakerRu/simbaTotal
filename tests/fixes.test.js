@@ -338,8 +338,9 @@ describe('controllers/profile.controller', () => {
             body: { userFirstName: 'Анна', doctorSpecialization: 'Хирург', doctorExperienceYears: 8 }
         }, docRes);
         assert.equal(docRes.statusCode, 200);
-        assert.ok(queries[0].sql.includes('"doctorSpecialization"'));
-        assert.ok(queries[0].sql.includes('"doctorExperienceYears"'));
+        const updateQuery = queries.find((q) => q.sql.includes('"doctorSpecialization"'));
+        assert.ok(updateQuery);
+        assert.ok(updateQuery.sql.includes('"doctorExperienceYears"'));
 
         // Client trying to pass doctorSpecialization gets it filtered out (400 if no basic fields)
         const clientRes = createMockRes();
@@ -546,9 +547,16 @@ describe('models/Order & controllers/shop.controller', () => {
             release() {}
         });
 
+        dbQueryHandler = async (sql) => {
+            if (sql.includes('FROM users')) {
+                return { rows: [{ userId: '1', role: 'client', ordersBlocked: false, noShowCount: 0 }] };
+            }
+            return { rows: [] };
+        };
+
         let okRes = createMockRes();
         await shopController.createOrder({
-            user: { userId: '1' },
+            user: { userId: '1', role: 'client' },
             body: {
                 customerName: 'Анна',
                 customerPhone: '+7 (904) 384-55-45',

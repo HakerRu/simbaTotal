@@ -1,12 +1,17 @@
 const User = require('../models/User');
 const { uploadToS3, deleteFromS3 } = require('../utils/s3');
 const { DOCTOR_PROFILE_FIELDS, pickProfileFields } = require('./doctors.controller');
+const { rejectIfCooling } = require('../utils/profileLimit');
 
 const BASIC_PROFILE_FIELDS = ['userFirstName', 'userLastName', 'userPhone'];
 
 exports.updateProfile = async (req, res) => {
     try {
-        const allowed = req.user.role === 'doctor' ? DOCTOR_PROFILE_FIELDS : BASIC_PROFILE_FIELDS;
+        const account = await User.findById(req.user.userId);
+        if (!account) return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+        if (rejectIfCooling(account, res)) return;
+
+        const allowed = (req.user.role === 'doctor' || req.user.role === 'manager') ? DOCTOR_PROFILE_FIELDS : BASIC_PROFILE_FIELDS;
         const updateData = pickProfileFields(req.body, allowed);
 
         if (Object.keys(updateData).length === 0) {
@@ -19,6 +24,8 @@ exports.updateProfile = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Пользователь не найден' });
         }
 
+        await User.touchProfile(req.user.userId);
+        user.profileUpdatedAt = new Date().toISOString();
         res.json({ success: true, user });
     } catch (e) {
         console.error('Ошибка обновления профиля:', e);
@@ -31,8 +38,12 @@ exports.uploadAvatar = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'Файл не загружен' });
         }
+        if (!String(req.file.mimetype || '').startsWith('image/')) {
+            return res.status(400).json({ success: false, message: 'Аватар должен быть изображением' });
+        }
 
         const currentUser = await User.findById(req.user.userId);
+        if (currentUser && rejectIfCooling(currentUser, res)) return;
 
         if (!currentUser) {
             return res.status(404).json({ success: false, message: 'Пользователь не найден' });
@@ -52,6 +63,7 @@ exports.uploadAvatar = async (req, res) => {
             avatarUrl: result.url,
             avatarKey: result.key
         });
+        await User.touchProfile(req.user.userId);
 
         res.json({
             success: true,

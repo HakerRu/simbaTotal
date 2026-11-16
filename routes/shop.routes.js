@@ -30,10 +30,13 @@ router.delete('/cart', isAuthenticated, shopController.clearCart);
 
 router.post('/orders', isAuthenticated, orderValidator, handleValidationErrors, shopController.createOrder);
 router.get('/orders', isAuthenticated, shopController.getMyOrders);
+router.get('/orders/active', isAuthenticated, shopController.getActiveOrder);
 router.get('/orders/all', ...staff, shopController.getAllOrders);
 router.get('/orders/slots', shopController.getSlotsByDate);
 router.get('/orders/check-slot', shopController.checkSlot);
 router.get('/orders/:id', isAuthenticated, validateId('id'), shopController.getOrder);
+router.put('/orders/:id', isAuthenticated, validateId('id'), shopController.updateMyOrder);
+router.post('/orders/:id/cancel', isAuthenticated, validateId('id'), shopController.cancelMyOrder);
 router.put('/orders/:id/status', ...staff, validateId('id'), shopController.updateOrderStatus);
 router.delete('/orders/:id', ...staff, validateId('id'), shopController.deleteOrder);
 

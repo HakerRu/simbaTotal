@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { rejectIfCooling } = require('../utils/profileLimit');
 
 exports.getAllDoctors = async (req, res) => {
     try {
@@ -42,12 +43,17 @@ exports.pickProfileFields = pickProfileFields;
 
 exports.updateMyProfile = async (req, res) => {
     try {
+        const account = await User.findById(req.user.userId);
+        if (!account) return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+        if (rejectIfCooling(account, res)) return;
+
         const updateData = pickProfileFields(req.body, DOCTOR_PROFILE_FIELDS);
 
         const user = await User.updateProfile(req.user.userId, updateData);
         if (!user) {
             return res.status(400).json({ success: false, message: 'Нет данных для обновления' });
         }
+        await User.touchProfile(req.user.userId);
         res.json({ success: true, user });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });

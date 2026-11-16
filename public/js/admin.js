@@ -7,10 +7,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupLogout();
 });
 
+let adminUser = null;
+
 async function checkAdminAuth() {
     try {
         const data = await API.get('/auth/me');
         if (data.success && (data.user.role === 'admin' || data.user.role === 'manager')) {
+            adminUser = data.user;
             return data.user;
         }
     } catch (e) {}
@@ -66,6 +69,18 @@ async function loadDashboard() {
             const usersData = await API.get('/admin/users');
             if (usersData.success) {
                 content.innerHTML = `
+                    ${adminUser?.role === 'admin' ? `
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="fw-bold">Назначить менеджера</h5>
+                            <p class="small text-muted">Только одобренный врач. Снять роль может только администратор, человек снова станет врачом.</p>
+                            <div class="input-group mb-3">
+                                <input type="search" class="form-control" id="managerSearch" placeholder="Имя или email врача">
+                                <button class="btn btn-primary" type="button" id="managerSearchBtn">Найти</button>
+                            </div>
+                            <div id="managerSearchResults"></div>
+                        </div>
+                    </div>` : ''}
                     <h5>Пользователи (${usersData.total || usersData.users?.length || 0})</h5>
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -81,10 +96,47 @@ async function loadDashboard() {
                             </tbody>
                         </table>
                     </div>`;
+                document.getElementById('managerSearchBtn')?.addEventListener('click', searchManagers);
+                document.getElementById('managerSearch')?.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') searchManagers();
+                });
             }
         }
     } catch (e) {
         console.error('Ошибка загрузки дашборда:', e);
+    }
+}
+
+async function searchManagers() {
+    const q = document.getElementById('managerSearch')?.value || '';
+    const box = document.getElementById('managerSearchResults');
+    if (!box) return;
+    try {
+        const data = await API.get(`/admin/staff-search?q=${encodeURIComponent(q)}`);
+        const users = data.users || [];
+        box.innerHTML = users.length ? users.map(user => `
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div>
+                    <strong>${escapeHtml(user.userFirstName)} ${escapeHtml(user.userLastName)}</strong>
+                    <small class="text-muted d-block">${escapeHtml(user.userEmail)} · ${escapeHtml(user.role === 'manager' ? 'менеджер' : 'врач')}</small>
+                </div>
+                <button type="button" class="btn btn-sm ${user.role === 'manager' ? 'btn-outline-danger' : 'btn-outline-primary'} rounded-pill manager-toggle" data-id="${escapeHtml(user.userId)}" data-appoint="${user.role === 'manager' ? '0' : '1'}">
+                    ${user.role === 'manager' ? 'Снять' : 'Назначить'}
+                </button>
+            </div>
+        `).join('') : '<p class="text-muted small mb-0">Никого не найдено среди одобренных врачей</p>';
+        box.querySelectorAll('.manager-toggle').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await API.put(`/admin/users/${btn.dataset.id}/manager`, { appoint: btn.dataset.appoint === '1' });
+                    searchManagers();
+                } catch (error) {
+                    alert(error.message || 'Не удалось изменить роль');
+                }
+            });
+        });
+    } catch (e) {
+        box.innerHTML = '<p class="text-danger small">Поиск доступен только администратору</p>';
     }
 }
 
@@ -98,6 +150,7 @@ function loadSection(section) {
         case 'certificates': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadCertificates(); break;
         case 'categories': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadCategoriesAdmin(); break;
         case 'users': content.innerHTML = '<h5>Управление пользователями</h5><p class="text-muted">Загрузка...</p>'; loadUsers(); break;
+        case 'blocked': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadBlockedUsers(); break;
         case 'doctors': content.innerHTML = '<h5>Одобрение врачей</h5><p class="text-muted">Загрузка...</p>'; loadPendingDoctors(); break;
         case 'posts': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadPosts(); break;
         case 'services': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadServices(); break;
@@ -649,6 +702,53 @@ async function loadUsers() {
                     </table>
                 </div>`;
         }
+    } catch (e) {
+        document.getElementById('sectionContent').innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
+    }
+}
+
+async function loadBlockedUsers() {
+    try {
+        const data = await API.get('/admin/users/blocked');
+        const users = data.users || [];
+        const reason = { user: 'отменил сам', noshow: 'не забрал', staff: 'отменила клиника' };
+        document.getElementById('sectionContent').innerHTML = `
+            <h5>Заблокированные заказы (${users.length})</h5>
+            <p class="small text-muted">Два незабора закрывают новые заказы. Разблокировка обнуляет счётчик. Человек может зайти в аккаунт и без этого.</p>
+            ${users.length === 0 ? '<p class="text-muted">Таких пользователей нет</p>' : users.map(user => `
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <strong>${escapeHtml(user.userFirstName)} ${escapeHtml(user.userLastName)}</strong>
+                                <small class="text-muted d-block">${escapeHtml(user.userEmail)} · ${escapeHtml(user.userPhone || 'телефон не указан')}</small>
+                                <small class="text-muted">Незаборов: ${user.noShowCount || 0}</small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-success rounded-pill unblock-orders" data-id="${escapeHtml(user.userId)}">Разблокировать</button>
+                        </div>
+                        <div class="mt-3">
+                            ${(user.cancelledOrders || []).map(order => `
+                                <div class="border-top pt-2 mt-2 small">
+                                    <strong>${escapeHtml(order.orderNumber)}</strong>
+                                    <span class="text-muted">${escapeHtml(reason[order.cancelReason] || 'отменён')}</span>
+                                    <div class="text-muted">${new Date(order.pickupDate).toLocaleDateString('ru-RU')} ${escapeHtml(String(order.pickupTime || '').substring(0, 5))} · ${escapeHtml(order.pickupAddress || '')}</div>
+                                    <div>${(order.items || []).map(item => `${escapeHtml(item.productName)} × ${item.quantity}`).join(', ') || 'Состав не сохранился'}</div>
+                                </div>
+                            `).join('') || '<p class="small text-muted mb-0 mt-2">Отменённых заказов нет</p>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}`;
+        document.querySelectorAll('.unblock-orders').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await API.put(`/admin/users/${btn.dataset.id}/unblock-orders`);
+                    loadBlockedUsers();
+                } catch (error) {
+                    alert(error.message || 'Не удалось разблокировать');
+                }
+            });
+        });
     } catch (e) {
         document.getElementById('sectionContent').innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
     }

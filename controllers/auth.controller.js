@@ -302,7 +302,10 @@ exports.getMe = async (req, res) => {
                 doctorEducation: user.doctorEducation,
                 vkLink: user.vkLink,
                 telegramLink: user.telegramLink,
-                isEmailVerified: user.isEmailVerified
+                isEmailVerified: user.isEmailVerified,
+                profileUpdatedAt: user.profileUpdatedAt,
+                ordersBlocked: user.ordersBlocked,
+                noShowCount: user.noShowCount
             }
         });
     } catch (error) {

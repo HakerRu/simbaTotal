@@ -21,6 +21,14 @@ exports.updateUserStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Нельзя деактивировать собственный аккаунт' });
         }
 
+        const target = await User.findById(req.params.id);
+        if (!target) {
+            return res.status(404).json({ success: false, message: 'Пользователь не найден или нечего обновлять' });
+        }
+        if (req.user.role !== 'admin' && target.role === 'admin') {
+            return res.status(403).json({ success: false, message: 'Менеджер не может менять администратора' });
+        }
+
         const user = await User.updateStatus(req.params.id, req.body);
         if (!user) {
             return res.status(404).json({ success: false, message: 'Пользователь не найден или нечего обновлять' });
@@ -29,6 +37,60 @@ exports.updateUserStatus = async (req, res) => {
         res.json({ success: true, user });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });
+    }
+};
+
+exports.searchStaff = async (req, res) => {
+    try {
+        const users = await User.searchAppointable(req.query.q || '');
+        res.json({ success: true, users });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка поиска' });
+    }
+};
+
+exports.setManager = async (req, res) => {
+    try {
+        const target = await User.findById(req.params.id);
+        if (!target) return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+        if (target.role === 'admin') {
+            return res.status(403).json({ success: false, message: 'Нельзя менять роль администратора' });
+        }
+
+        const appoint = req.body.appoint === true;
+        if (appoint) {
+            if (target.role !== 'doctor' || target.doctorStatus !== 'approved') {
+                return res.status(400).json({ success: false, message: 'Менеджером можно назначить только одобренного врача' });
+            }
+        } else if (target.role !== 'manager') {
+            return res.status(400).json({ success: false, message: 'Это не менеджер' });
+        }
+
+        const user = await User.setRole(req.params.id, appoint ? 'manager' : 'doctor');
+        res.json({ success: true, user });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка назначения' });
+    }
+};
+
+exports.getBlockedUsers = async (req, res) => {
+    try {
+        await require('../models/Order').expireNoShows();
+        const users = await User.getBlockedWithCancellations();
+        res.json({ success: true, users });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};
+
+exports.unblockOrders = async (req, res) => {
+    try {
+        const user = await User.unblockOrders(req.params.id);
+        if (!user) return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+        res.json({ success: true, user });
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Ошибка разблокировки' });
     }
 };
 

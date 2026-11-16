@@ -51,7 +51,28 @@ function renderSummary() {
         </small>
     `;
 
-    document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
+        document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
+        guardActiveOrder();
+}
+
+async function guardActiveOrder() {
+    try {
+        const data = await API.get('/shop/orders/active');
+        const alert = document.getElementById('checkoutAlert');
+        const button = document.getElementById('confirmOrderBtn');
+        if (!alert || !button) return;
+        if (data.ordersBlocked) {
+            alert.style.display = 'block';
+            alert.className = 'alert alert-warning py-2 small';
+            alert.textContent = 'Заказы закрыты после двух незаборов. Придите в клинику, менеджер или администратор откроет их снова.';
+            button.disabled = true;
+        } else if (data.order) {
+            alert.style.display = 'block';
+            alert.className = 'alert alert-warning py-2 small';
+            alert.innerHTML = 'У вас уже есть активный заказ. В течение 30 минут его можно <a href="/profile.html">изменить в профиле</a>.';
+            button.disabled = true;
+        }
+    } catch (e) {}
 }
 
 function setupDateInput() {
