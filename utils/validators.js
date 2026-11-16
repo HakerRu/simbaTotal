@@ -18,6 +18,9 @@ const registerValidator = [
     body('role')
         .optional({ nullable: true })
         .isIn(['client', 'doctor']).withMessage('Некорректная роль'),
+    body('privacyAccepted')
+        .custom((value) => value === true || value === 'true')
+        .withMessage('Нужно согласие на обработку персональных данных'),
 ];
 
 const loginValidator = [
@@ -51,6 +54,9 @@ const orderValidator = [
     body('pickupAddress').trim().isIn(PICKUP_ADDRESSES).withMessage('Выберите адрес самовывоза'),
     body('pickupDate').isDate().withMessage('Выберите дату'),
     body('pickupTime').matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('Выберите время'),
+    body('privacyAccepted')
+        .custom((value) => value === true || value === 'true')
+        .withMessage('Нужно согласие на обработку персональных данных'),
 ];
 
 const postValidator = [

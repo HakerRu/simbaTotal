@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Файлы cookie | ВетКлиника «Симба»</title>
+    <meta name="description" content="Какие cookie ставит сайт ветклиники «Симба» и как отключить будущие счётчики Яндекс Метрики и Google Analytics.">
+    <link rel="canonical" href="https://www.sim-simba.ru/cookies.html">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="bi bi-heart-pulse-fill"></i> Симба</a>
+        <div class="d-flex align-items-center gap-2 d-lg-none">
+            <a href="/cart.html" class="nav-icon-btn" aria-label="Корзина">
+                <i class="bi bi-cart3"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count" style="display:none">0</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Меню">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1">
+                <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
+                <li class="nav-item"><a class="nav-link" href="/shop.html">Магазин</a></li>
+                <li class="nav-item"><a class="nav-link" href="/services.html">Услуги</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Инфостенд</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/blog.html"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Главная</a></li>
+                        <li><a class="dropdown-item" href="/reels.html"><i class="bi bi-play-btn me-2 text-primary"></i>Reels</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="/doctors.html">Сотрудники</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">О клинике</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/gallery.html"><i class="bi bi-images me-2 text-primary"></i>Галерея</a></li>
+                        <li><a class="dropdown-item" href="/certificates.html"><i class="bi bi-award me-2 text-primary"></i>Сертификаты</a></li>
+                        <li><a class="dropdown-item" href="/contacts.html"><i class="bi bi-geo-alt me-2 text-primary"></i>Контакты</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <a href="/cart.html" class="nav-icon-btn d-none d-lg-inline-flex" aria-label="Корзина" title="Корзина">
+                    <i class="bi bi-cart3"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count" style="display:none">0</span>
+                </a>
+                <a href="/contacts.html" class="nav-icon-btn d-none d-lg-inline-flex" aria-label="Контакты" title="Контакты и звонок">
+                    <i class="bi bi-telephone"></i>
+                </a>
+                <div id="userMenu">
+                    <a class="btn btn-nav-auth btn-sm rounded-pill px-3" href="/login.html"><i class="bi bi-person"></i> Войти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="legal-page">
+    <div class="container">
+        <p class="small text-muted mb-2">Редакция от 15 ноября 2026 года</p>
+        <h1 class="fw-bold mb-3">Файлы cookie</h1>
+        <p class="lead">Cookie — маленькая запись, которую сайт оставляет в браузере. Сейчас «Симба» ставит только cookie входа. Рекламных cookie нет.</p>
+
+        <h2>Необходимые</h2>
+        <p>Их ставит сам сайт после входа и подтверждения почты. Страницы их не читают: у записей стоит флаг <code>httpOnly</code>.</p>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Имя</th>
+                        <th>Зачем</th>
+                        <th>Срок</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>accessToken</code></td>
+                        <td>Короткий пропуск в аккаунт</td>
+                        <td>15 минут</td>
+                    </tr>
+                    <tr>
+                        <td><code>refreshToken</code></td>
+                        <td>Продлевает вход, не заставляя вводить пароль каждые 15 минут</td>
+                        <td>7 дней</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p>Без этих cookie сайт открывается, но оставаться в аккаунте он не сможет. Поэтому на них нельзя нажать «отклонить» отдельно от выхода из аккаунта.</p>
+
+        <h2>Ваш выбор на этом устройстве</h2>
+        <p>Окно внизу экрана запоминает ответ в <code>localStorage</code> браузера под ключом <code>simba_cookie_consent</code>. Это не cookie и на сервер не отправляется.</p>
+        <p id="cookieChoiceStatus" class="fw-semibold">Выбор ещё не сохранён.</p>
+        <button type="button" class="btn btn-outline-primary rounded-pill" id="cookieSettingsBtn">Изменить выбор</button>
+
+        <h2>Аналитика, которую подключим позже</h2>
+        <p>Планируются Яндекс Метрика и Google Analytics. Счётчиков на сайте пока нет, номера не присвоены, и скрипты не загружаются.</p>
+        <p>Когда они появятся, код будет вызывать их только если вы нажали «Принять аналитику». Кнопка «Только необходимые» оставляет сайт без Метрики и Google Analytics. Типичные имена таких cookie — <code>_ym_uid</code>, <code>_ym_d</code> у Яндекса и <code>_ga</code> у Google. Срок у них обычно до двух лет. Точный список допишем сюда вместе с номерами счётчиков.</p>
+        <p>До подключения проверка в коде выглядит так: <code>simbaConsent.analyticsAllowed()</code> возвращает <code>true</code> только после согласия.</p>
+
+        <h2>Карта на странице контактов</h2>
+        <p>Виджет Яндекс Карт загружается сразу, когда вы открываете контакты. Это не счётчик посещаемости сайта, но Яндекс может поставить собственные cookie. Если это не нужно, карту можно не открывать: адреса и телефоны написаны текстом на той же странице.</p>
+
+        <h2>Как отключить</h2>
+        <p>Кнопка выше снова показывает окно выбора. Cookie входа удаляются кнопкой «Выйти» в меню. Остальные cookie браузер стирает в своих настройках, в разделе конфиденциальности.</p>
+        <p>Об обработке имени, телефона и почты — в <a href="/privacy.html">политике конфиденциальности</a>.</p>
+    </div>
+</main>
+
+<footer class="footer text-white pt-5 pb-3">
+    <div class="container">
+        <div class="text-center">
+            <p class="small mb-0" style="color:#94a3b8">&copy; 2026 ВетКлиника «Симба». Забота о каждом питомце</p>
+            <p class="small mb-0 mt-2"><a href="/privacy.html" class="footer-link">Политика конфиденциальности</a> · <a href="/cookies.html" class="footer-link">Файлы cookie</a></p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/consent.js"></script>
+</body>
+</html>

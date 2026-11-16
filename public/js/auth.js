@@ -153,6 +153,15 @@ if (registerForm) {
         alert.style.display = 'none';
 
         const role = document.querySelector('input[name="regRole"]:checked').value;
+        const privacyAccepted = document.getElementById('privacyConsent')?.checked === true;
+        if (!privacyAccepted) {
+            alert.style.display = 'block';
+            alert.className = 'alert alert-danger py-2 small';
+            alert.textContent = 'Нужно согласие с политикой конфиденциальности';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-person-plus"></i> Зарегистрироваться';
+            return;
+        }
 
         try {
             const data = await API.post('/auth/register', {
@@ -161,7 +170,8 @@ if (registerForm) {
                 userFirstName: document.getElementById('regFirstName').value.trim(),
                 userLastName: document.getElementById('regLastName').value.trim(),
                 userPhone: document.getElementById('regPhone').value.trim(),
-                role: role
+                role: role,
+                privacyAccepted: true
             });
 
             if (data.success) {

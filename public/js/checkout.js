@@ -163,6 +163,13 @@ async function submitOrder() {
         return;
     }
 
+    if (document.getElementById('privacyConsent')?.checked !== true) {
+        alert.style.display = 'block';
+        alert.className = 'alert alert-danger py-2 small';
+        alert.textContent = 'Нужно согласие на обработку данных заказа';
+        return;
+    }
+
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Оформляем...';
 
@@ -173,7 +180,8 @@ async function submitOrder() {
             pickupAddress,
             pickupDate,
             pickupTime,
-            orderNotes
+            orderNotes,
+            privacyAccepted: true
         });
 
         if (data.success) {
