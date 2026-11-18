@@ -572,6 +572,65 @@ describe('models/Order & controllers/shop.controller', () => {
         assert.ok(insertOrder);
         assert.equal(insertOrder.params[4], 'г. Нижний Тагил, ул. Носова, 1');
     });
+
+    it('Order.canEditOrder and Order.canCancelOrder enforce 30-minute window and statuses', () => {
+        const now = 1800000000000;
+        const freshDate = new Date(now - 10 * 60 * 1000).toISOString(); // 10 min ago
+        const oldDate = new Date(now - 35 * 60 * 1000).toISOString();   // 35 min ago
+
+        // Fresh pending order: can edit and can cancel
+        assert.equal(Order.canEditOrder({ orderStatus: 'pending', createDate: freshDate }, now), true);
+        assert.equal(Order.canCancelOrder({ orderStatus: 'pending', createDate: freshDate }, now), true);
+
+        // Fresh ready order: items locked, but cancellation allowed
+        assert.equal(Order.canEditOrder({ orderStatus: 'ready', createDate: freshDate }, now), false);
+        assert.equal(Order.canCancelOrder({ orderStatus: 'ready', createDate: freshDate }, now), true);
+
+        // Fresh paid/cancelled order: neither allowed
+        assert.equal(Order.canEditOrder({ orderStatus: 'paid', createDate: freshDate }, now), false);
+        assert.equal(Order.canCancelOrder({ orderStatus: 'paid', createDate: freshDate }, now), false);
+        assert.equal(Order.canEditOrder({ orderStatus: 'cancelled', createDate: freshDate }, now), false);
+        assert.equal(Order.canCancelOrder({ orderStatus: 'cancelled', createDate: freshDate }, now), false);
+
+        // Old pending order (>30 min): window expired
+        assert.equal(Order.canEditOrder({ orderStatus: 'pending', createDate: oldDate }, now), false);
+        assert.equal(Order.canCancelOrder({ orderStatus: 'pending', createDate: oldDate }, now), false);
+    });
+
+    it('shopController.getMyOrders decorates orders with canEdit, canCancel, and editTimeLeftMs', async () => {
+        const now = Date.now();
+        const fresh = new Date(now - 12 * 60 * 1000).toISOString();
+        dbConnectHandler = async () => ({
+            query: async () => ({ rows: [] }),
+            release() {}
+        });
+        dbQueryHandler = async (sql) => {
+            if (sql.includes('FROM orders o')) {
+                return {
+                    rows: [{
+                        orderId: '101',
+                        orderNumber: 'ORD-101',
+                        orderStatus: 'pending',
+                        createDate: fresh,
+                        pickupAddress: 'г. Нижний Тагил, ул. Носова, 1',
+                        pickupDate: '2099-01-01',
+                        pickupTime: '14:00',
+                        totalAmount: '1200'
+                    }]
+                };
+            }
+            return { rows: [] };
+        };
+
+        const res = createMockRes();
+        await shopController.getMyOrders({ user: { userId: '1' } }, res);
+        assert.equal(res.statusCode, 200);
+        assert.equal(res.body.success, true);
+        const o = res.body.orders[0];
+        assert.equal(o.canEdit, true);
+        assert.equal(o.canCancel, true);
+        assert.ok(o.editTimeLeftMs > 17 * 60 * 1000 && o.editTimeLeftMs <= 19 * 60 * 1000);
+    });
 });
 
 describe('controllers/blog.controller', () => {

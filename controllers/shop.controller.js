@@ -10,10 +10,15 @@ const ALLOWED_ORDER_STATUSES = new Set(['pending', 'ready', 'paid', 'cancelled']
 
 const decorateOrder = (order) => {
     if (!order) return order;
+    const now = Date.now();
+    const createdMs = order.createDate ? new Date(order.createDate).getTime() : 0;
+    const editWindowMs = 30 * 60 * 1000;
+    const editTimeLeftMs = createdMs ? Math.max(0, createdMs + editWindowMs - now) : 0;
     return {
         ...order,
-        canEdit: Order.canEditOrder(order),
-        canCancel: Order.canCancelOrder(order)
+        canEdit: Order.canEditOrder(order, now),
+        canCancel: Order.canCancelOrder(order, now),
+        editTimeLeftMs
     };
 };
 
@@ -329,7 +334,7 @@ exports.createOrder = async (req, res) => {
             }
         }
 
-        const todayLocal = new Date().toLocaleDateString('en-CA');
+        const todayLocal = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Yekaterinburg' });
         if (pickupDate < todayLocal) {
             return res.status(400).json({ success: false, message: 'Дата самовывоза не может быть в прошлом' });
         }
@@ -435,7 +440,7 @@ exports.updateMyOrder = async (req, res) => {
         if (orderNotes.length > 500) {
             return res.status(400).json({ success: false, message: 'Примечание слишком длинное' });
         }
-        const todayLocal = new Date().toLocaleDateString('en-CA');
+        const todayLocal = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Yekaterinburg' });
         if (pickupDate < todayLocal) {
             return res.status(400).json({ success: false, message: 'Дата самовывоза не может быть в прошлом' });
         }

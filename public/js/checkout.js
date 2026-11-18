@@ -69,7 +69,11 @@ async function guardActiveOrder() {
         } else if (data.order) {
             alert.style.display = 'block';
             alert.className = 'alert alert-warning py-2 small';
-            alert.innerHTML = 'У вас уже есть активный заказ. В течение 30 минут его можно <a href="/profile.html">изменить в профиле</a>.';
+            const leftMinutes = data.order.editTimeLeftMs > 0 ? Math.ceil(data.order.editTimeLeftMs / 60000) : 0;
+            const hint = leftMinutes > 0
+                ? ` (можно изменить ещё ${leftMinutes} мин.)`
+                : '';
+            alert.innerHTML = `У вас уже есть активный заказ. В течение 30 минут его можно <a href="/profile.html">изменить в профиле</a>${hint}.`;
             button.disabled = true;
         }
     } catch (e) {}

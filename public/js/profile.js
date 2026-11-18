@@ -110,12 +110,58 @@ const CANCEL_REASON = {
     staff: 'отменила клиника'
 };
 
+function formatTimerMinutes(ms) {
+    const minutes = Math.max(1, Math.ceil(ms / 60000));
+    return `${minutes} мин.`;
+}
+
+function formatEditTimer(ms) {
+    if (ms <= 0) return '';
+    return `Можно изменить ещё ${formatTimerMinutes(ms)}`;
+}
+
+let orderTimerInterval = null;
+function startOrderTimerTicker() {
+    if (orderTimerInterval) clearInterval(orderTimerInterval);
+    orderTimerInterval = setInterval(() => {
+        const timerEls = document.querySelectorAll('.order-edit-timer');
+        if (!timerEls.length) {
+            clearInterval(orderTimerInterval);
+            orderTimerInterval = null;
+            return;
+        }
+        let anyExpired = false;
+        timerEls.forEach(el => {
+            const expires = Number(el.dataset.expires);
+            const left = Math.max(0, expires - Date.now());
+            if (left <= 0) {
+                anyExpired = true;
+            } else {
+                const textSpan = el.querySelector('.timer-text');
+                if (textSpan) {
+                    const canEdit = el.dataset.canEdit === 'true';
+                    textSpan.textContent = canEdit
+                        ? formatEditTimer(left)
+                        : `Можно отменить ещё ${formatTimerMinutes(left)}`;
+                }
+            }
+        });
+        if (anyExpired) {
+            loadOrders();
+        }
+    }, 10000);
+}
+
 async function loadOrders() {
     try {
         const data = await API.get('/shop/orders');
         const list = document.getElementById('ordersList');
         if (!data.success || !data.orders.length) {
             list.innerHTML = '<p class="text-muted small mb-0">Заказов пока нет</p>';
+            if (orderTimerInterval) {
+                clearInterval(orderTimerInterval);
+                orderTimerInterval = null;
+            }
             return;
         }
         list.innerHTML = data.orders.map(order => {
@@ -123,6 +169,17 @@ async function loadOrders() {
                 ? CANCEL_REASON[order.cancelReason] || ORDER_STATUS.cancelled
                 : (ORDER_STATUS[order.orderStatus] || order.orderStatus);
             const items = Array.isArray(order.items) ? order.items : [];
+            const createdMs = order.createDate ? new Date(order.createDate).getTime() : 0;
+            const editWindowMs = 30 * 60 * 1000;
+            const timeLeftMs = order.editTimeLeftMs !== undefined
+                ? Number(order.editTimeLeftMs)
+                : (createdMs ? Math.max(0, createdMs + editWindowMs - Date.now()) : 0);
+            const showTimer = (order.canEdit || order.canCancel) && timeLeftMs > 0;
+            const expiresAt = Date.now() + timeLeftMs;
+            const timerLabel = order.canEdit
+                ? formatEditTimer(timeLeftMs)
+                : `Можно отменить ещё ${formatTimerMinutes(timeLeftMs)}`;
+
             return `
                 <div class="border-bottom py-2" data-order="${escapeHtml(order.orderId)}">
                     <small class="fw-semibold">${escapeHtml(order.orderNumber)}</small>
@@ -134,9 +191,15 @@ async function loadOrders() {
                     <small class="text-muted">${Number(order.totalAmount).toLocaleString()} ₽</small>
                     ${items.length ? `<small class="text-muted d-block">${items.map(item => `${escapeHtml(item.productName)} × ${item.quantity}`).join(', ')}</small>` : ''}
                     ${order.canEdit || order.canCancel ? `
-                        <div class="d-flex gap-2 mt-2">
+                        <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
                             ${order.canEdit ? `<button type="button" class="btn btn-sm btn-outline-primary rounded-pill edit-order" data-id="${escapeHtml(order.orderId)}">Изменить</button>` : ''}
                             ${order.canCancel ? `<button type="button" class="btn btn-sm btn-outline-danger rounded-pill cancel-order" data-id="${escapeHtml(order.orderId)}">Отменить</button>` : ''}
+                            ${showTimer ? `
+                                <small class="text-muted order-edit-timer d-inline-flex align-items-center" data-expires="${expiresAt}" data-can-edit="${Boolean(order.canEdit)}">
+                                    <i class="bi bi-clock-history me-1 text-accent"></i>
+                                    <span class="timer-text">${escapeHtml(timerLabel)}</span>
+                                </small>
+                            ` : ''}
                         </div>
                         <div class="order-editor mt-2" id="editor-${escapeHtml(order.orderId)}" hidden></div>
                     ` : ''}
@@ -149,6 +212,7 @@ async function loadOrders() {
         list.querySelectorAll('.edit-order').forEach(btn => {
             btn.addEventListener('click', () => openOrderEditor(data.orders.find(order => String(order.orderId) === btn.dataset.id)));
         });
+        startOrderTimerTicker();
     } catch (e) {}
 }
 
