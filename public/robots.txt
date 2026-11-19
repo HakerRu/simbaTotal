@@ -1,0 +1,51 @@
+# robots.txt для сайта ветеринарной клиники и зоомагазина «Симба» (г. Нижний Тагил)
+
+User-agent: Yandex
+Allow: /
+Allow: /images/
+Allow: /css/
+Allow: /js/
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /profile
+Disallow: /profile.html
+Disallow: /cart
+Disallow: /cart.html
+Disallow: /checkout
+Disallow: /checkout.html
+Disallow: /order-success
+Disallow: /order-success.html
+Disallow: /login
+Disallow: /login.html
+Disallow: /register
+Disallow: /register.html
+Disallow: /api/
+
+# Очистка мусорных параметров для сохранения краулингового бюджета Яндекса
+Clean-param: yclid&ymclid&_openstat&from&utm_source&utm_medium&utm_campaign&utm_content&utm_term
+Clean-param: ref&partner&backUrl
+
+Sitemap: https://www.sim-simba.ru/sitemap.xml
+
+User-agent: *
+Allow: /
+Allow: /images/
+Allow: /css/
+Allow: /js/
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /profile
+Disallow: /profile.html
+Disallow: /cart
+Disallow: /cart.html
+Disallow: /checkout
+Disallow: /checkout.html
+Disallow: /order-success
+Disallow: /order-success.html
+Disallow: /login
+Disallow: /login.html
+Disallow: /register
+Disallow: /register.html
+Disallow: /api/
+
+Sitemap: https://www.sim-simba.ru/sitemap.xml

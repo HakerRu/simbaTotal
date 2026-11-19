@@ -13,11 +13,10 @@ class Gallery {
         return result.rows;
     }
 
-    static async getAlbumById(albumId) {
-        const albumResult = await db.query(
-            'SELECT * FROM gallery_albums WHERE "albumId" = $1',
-            [albumId]
-        );
+    static async getAlbumById(albumId, { publishedOnly = true } = {}) {
+        let query = 'SELECT * FROM gallery_albums WHERE "albumId" = $1';
+        if (publishedOnly) query += ' AND "isPublished" = true';
+        const albumResult = await db.query(query, [albumId]);
         if (!albumResult.rows[0]) return null;
 
         const album = albumResult.rows[0];
@@ -27,6 +26,15 @@ class Gallery {
         );
         album.photos = photosResult.rows;
         return album;
+    }
+
+    static async getAlbumKeys(albumId) {
+        const albumRes = await db.query('SELECT "coverImageKey" FROM gallery_albums WHERE "albumId" = $1', [albumId]);
+        const photosRes = await db.query('SELECT "photoKey" FROM gallery_photos WHERE "albumId" = $1', [albumId]);
+        return [
+            albumRes.rows[0]?.coverImageKey,
+            ...photosRes.rows.map((r) => r.photoKey)
+        ].filter(Boolean);
     }
 
     static async createAlbum({ albumName, albumSlug, albumDescription, coverImageUrl, coverImageKey, isPublished }) {

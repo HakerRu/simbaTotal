@@ -1,17 +1,27 @@
 const nodemailer = require('nodemailer');
 
+const smtpPort = parseInt(process.env.SMTP_PORT, 10) || 587;
+
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT),
-    secure: false,
+    port: smtpPort,
+    secure: smtpPort === 465,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
     }
 });
 
+const escapeEmailHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 const sendVerificationEmail = async (to, firstName, token) => {
-    const verifyUrl = `${process.env.BASE_URL}/api/auth/verify-email?token=${token}`;
+    const verifyUrl = `${process.env.BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+    const safeName = escapeEmailHtml(firstName || 'пользователь');
 
     const html = `
     <!DOCTYPE html>
@@ -27,7 +37,7 @@ const sendVerificationEmail = async (to, firstName, token) => {
             </tr>
             <tr>
                 <td style="padding:32px 30px">
-                    <h2 style="color:#1A202C;margin:0 0 8px;font-size:18px">Здравствуйте, ${firstName}!</h2>
+                    <h2 style="color:#1A202C;margin:0 0 8px;font-size:18px">Здравствуйте, ${safeName}!</h2>
                     <p style="color:#718096;font-size:14px;line-height:1.6;margin:0 0 20px">
                         Спасибо за регистрацию в ВетКлинике «Симба». 
                         Для подтверждения email перейдите по кнопке ниже:

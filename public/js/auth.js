@@ -1,3 +1,49 @@
+const RESEND_COOLDOWN_MS = 60 * 1000;
+
+function beginResendCooldown(button) {
+    if (!button || button.dataset.cooling === '1') return;
+    const original = button.dataset.label || button.innerHTML;
+    button.dataset.label = original;
+    button.dataset.cooling = '1';
+    button.disabled = true;
+    const endsAt = Date.now() + RESEND_COOLDOWN_MS;
+
+    const tick = () => {
+        const left = Math.ceil((endsAt - Date.now()) / 1000);
+        if (left <= 0) {
+            button.disabled = false;
+            button.dataset.cooling = '0';
+            button.innerHTML = original;
+            return;
+        }
+        button.textContent = `Повторить через ${left} с`;
+        setTimeout(tick, 250);
+    };
+    tick();
+}
+
+async function requestVerificationEmail(email, button, statusEl) {
+    const trimmed = (email || '').trim();
+    if (!trimmed) {
+        if (statusEl) statusEl.textContent = 'Введите email, на который регистрировались';
+        return;
+    }
+
+    button.disabled = true;
+    try {
+        const data = await API.post('/auth/resend-verification', { userEmail: trimmed });
+        if (statusEl) statusEl.textContent = data.message || 'Письмо отправлено';
+        beginResendCooldown(button);
+    } catch (error) {
+        if (statusEl) statusEl.textContent = error.message || 'Не удалось отправить письмо';
+        if (error.status === 429 || error.status === 500 || error.status === 200) {
+            beginResendCooldown(button);
+        } else {
+            button.disabled = false;
+        }
+    }
+}
+
 // Проверка результата верификации при загрузке страницы регистрации
 const urlParams = new URLSearchParams(window.location.search);
 const verified = urlParams.get('verified');
@@ -40,16 +86,12 @@ if (verified === 'true' || verified === 'false') {
         }
 
         if (resendBtn) {
-            resendBtn.addEventListener('click', async () => {
-                const email = prompt('Введите ваш email для повторной отправки:');
-                if (email) {
-                    try {
-                        const data = await API.post('/auth/resend-verification', { userEmail: email });
-                        alert(data.message);
-                    } catch (e) {
-                        alert(e.message || 'Ошибка');
-                    }
-                }
+            resendBtn.addEventListener('click', () => {
+                requestVerificationEmail(
+                    document.getElementById('resendEmail')?.value,
+                    resendBtn,
+                    document.getElementById('resendVerifyStatus')
+                );
             });
         }
     }
@@ -111,6 +153,15 @@ if (registerForm) {
         alert.style.display = 'none';
 
         const role = document.querySelector('input[name="regRole"]:checked').value;
+        const privacyAccepted = document.getElementById('privacyConsent')?.checked === true;
+        if (!privacyAccepted) {
+            alert.style.display = 'block';
+            alert.className = 'alert alert-danger py-2 small';
+            alert.textContent = 'Нужно согласие с политикой конфиденциальности';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-person-plus"></i> Зарегистрироваться';
+            return;
+        }
 
         try {
             const data = await API.post('/auth/register', {
@@ -119,32 +170,14 @@ if (registerForm) {
                 userFirstName: document.getElementById('regFirstName').value.trim(),
                 userLastName: document.getElementById('regLastName').value.trim(),
                 userPhone: document.getElementById('regPhone').value.trim(),
-                role: role
+                role: role,
+                privacyAccepted: true
             });
 
             if (data.success) {
                 alert.style.display = 'block';
                 alert.className = 'alert alert-success py-3';
-                alert.innerHTML = `
-                    <i class="bi bi-envelope-check"></i> <strong>Регистрация успешна!</strong><br>
-                    <small>На ваш email отправлена ссылка для подтверждения. Проверьте почту (включая папку "Спам").</small>
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-outline-success rounded-pill" id="resendFromAlert">
-                            <i class="bi bi-arrow-repeat"></i> Отправить повторно
-                        </button>
-                    </div>`;
-
-                document.getElementById('resendFromAlert').addEventListener('click', async () => {
-                    try {
-                        const resend = await API.post('/auth/resend-verification', {
-                            userEmail: document.getElementById('regEmail').value.trim()
-                        });
-                        alert(resend.message);
-                    } catch (err) {
-                        alert(err.message);
-                    }
-                });
-
+                alert.textContent = data.message || 'Регистрация успешна. Проверьте почту, включая папку «Спам».';
                 registerForm.reset();
             }
         } catch (e) {
@@ -155,6 +188,28 @@ if (registerForm) {
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-person-plus"></i> Зарегистрироваться';
         }
+    });
+}
+
+const resendLoginBtn = document.getElementById('resendLoginBtn');
+if (resendLoginBtn) {
+    resendLoginBtn.addEventListener('click', () => {
+        requestVerificationEmail(
+            document.getElementById('loginEmail')?.value,
+            resendLoginBtn,
+            document.getElementById('resendLoginStatus')
+        );
+    });
+}
+
+const resendRegisterBtn = document.getElementById('resendRegisterBtn');
+if (resendRegisterBtn) {
+    resendRegisterBtn.addEventListener('click', () => {
+        requestVerificationEmail(
+            document.getElementById('regEmail')?.value,
+            resendRegisterBtn,
+            document.getElementById('resendRegisterStatus')
+        );
     });
 }
 

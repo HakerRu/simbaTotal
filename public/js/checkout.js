@@ -34,16 +34,16 @@ function renderSummary() {
     document.getElementById('orderSummary').innerHTML = `
         ${checkoutState.cartItems.map(item => `
             <div class="d-flex justify-content-between mb-2 small">
-                <span>${item.productName} <span class="text-muted">× ${item.quantity}</span></span>
+                <span>${escapeHtml(item.productName)} <span class="text-muted">× ${item.quantity}</span></span>
                 <span class="fw-semibold">${Number((item.productDiscountPrice || item.productPrice) * item.quantity).toLocaleString()} ₽</span>
             </div>
         `).join('')}
         <hr>
         <div class="d-flex justify-content-between mb-3">
             <span class="fw-bold">Итого:</span>
-            <span class="fw-bold text-primary fs-5">${Number(checkoutState.total).toLocaleString()} ₽</span>
+            <span class="fw-bold text-accent fs-5">${Number(checkoutState.total).toLocaleString()} ₽</span>
         </div>
-        <button class="btn btn-primary w-100 rounded-pill py-2 fw-semibold" id="confirmOrderBtn">
+        <button class="btn btn-accent w-100 rounded-pill py-2 fw-semibold" id="confirmOrderBtn">
             <i class="bi bi-check-lg"></i> Подтвердить заказ
         </button>
         <small class="text-muted d-block text-center mt-2">
@@ -51,15 +51,42 @@ function renderSummary() {
         </small>
     `;
 
-    document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
+        document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
+        guardActiveOrder();
+}
+
+async function guardActiveOrder() {
+    try {
+        const data = await API.get('/shop/orders/active');
+        const alert = document.getElementById('checkoutAlert');
+        const button = document.getElementById('confirmOrderBtn');
+        if (!alert || !button) return;
+        if (data.ordersBlocked) {
+            alert.style.display = 'block';
+            alert.className = 'alert alert-warning py-2 small';
+            alert.textContent = 'Заказы закрыты после двух незаборов. Придите в клинику, менеджер или администратор откроет их снова.';
+            button.disabled = true;
+        } else if (data.order) {
+            alert.style.display = 'block';
+            alert.className = 'alert alert-warning py-2 small';
+            const leftMinutes = data.order.editTimeLeftMs > 0 ? Math.ceil(data.order.editTimeLeftMs / 60000) : 0;
+            const hint = leftMinutes > 0
+                ? ` (можно изменить ещё ${leftMinutes} мин.)`
+                : '';
+            alert.innerHTML = `У вас уже есть активный заказ. В течение 30 минут его можно <a href="/profile.html">изменить в профиле</a>${hint}.`;
+            button.disabled = true;
+        }
+    } catch (e) {}
 }
 
 function setupDateInput() {
     const dateInput = document.getElementById('pickupDate');
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     dateInput.min = today;
 
     dateInput.addEventListener('change', () => {
+        checkoutState.selectedTime = null;
         if (dateInput.value) generateTimeSlots();
     });
 }
@@ -73,8 +100,14 @@ async function generateTimeSlots() {
         return;
     }
 
+    const [year, month, day] = date.split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const startHour = isWeekend ? 10 : 11;
+    const endHour = isWeekend ? 16 : 20;
+
     const slots = [];
-    for (let h = 9; h < 21; h++) {
+    for (let h = startHour; h < endHour; h++) {
         for (let m = 0; m < 60; m += 15) {
             slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
         }
@@ -104,10 +137,14 @@ async function generateTimeSlots() {
 }
 
 async function checkAllSlots(date, slots) {
-    for (const time of slots) {
-        try {
-            const data = await API.get(`/shop/orders/check-slot?date=${date}&time=${time}`);
-            if (!data.available) {
+    try {
+        const data = await API.get(`/shop/orders/slots?date=${encodeURIComponent(date)}`);
+        if (!data.success) return;
+        const maxPerSlot = data.maxPerSlot || 4;
+        const counts = data.slots || {};
+
+        for (const time of slots) {
+            if ((counts[time] || 0) >= maxPerSlot) {
                 const btn = document.querySelector(`.time-slot[data-time="${time}"]`);
                 if (btn) {
                     btn.disabled = true;
@@ -116,8 +153,8 @@ async function checkAllSlots(date, slots) {
                     btn.innerHTML = `${time}<br><small>занято</small>`;
                 }
             }
-        } catch (e) {}
-    }
+        }
+    } catch (e) {}
 }
 
 function setupForm() {
@@ -136,16 +173,25 @@ async function submitOrder() {
 
     const customerName = document.getElementById('customerName').value.trim();
     const customerPhone = document.getElementById('customerPhone').value.trim();
+    const pickupAddressEl = document.querySelector('input[name="pickupAddress"]:checked');
+    const pickupAddress = pickupAddressEl ? pickupAddressEl.value : '';
     const pickupDate = document.getElementById('pickupDate').value;
     const pickupTime = checkoutState.selectedTime;
     const orderNotes = document.getElementById('orderNotes').value.trim();
 
     alert.style.display = 'none';
 
-    if (!customerName || !customerPhone || !pickupDate || !pickupTime) {
+    if (!customerName || !customerPhone || !pickupAddress || !pickupDate || !pickupTime) {
         alert.style.display = 'block';
         alert.className = 'alert alert-danger py-2 small';
-        alert.textContent = 'Заполните все обязательные поля';
+        alert.textContent = 'Заполните все обязательные поля и выберите филиал самовывоза';
+        return;
+    }
+
+    if (document.getElementById('privacyConsent')?.checked !== true) {
+        alert.style.display = 'block';
+        alert.className = 'alert alert-danger py-2 small';
+        alert.textContent = 'Нужно согласие на обработку данных заказа';
         return;
     }
 
@@ -156,13 +202,15 @@ async function submitOrder() {
         const data = await API.post('/shop/orders', {
             customerName,
             customerPhone,
+            pickupAddress,
             pickupDate,
             pickupTime,
-            orderNotes
+            orderNotes,
+            privacyAccepted: true
         });
 
         if (data.success) {
-            window.location.href = `/order-success.html?number=${data.order.orderNumber}`;
+            window.location.href = `/order-success.html?number=${encodeURIComponent(data.order.orderNumber)}&address=${encodeURIComponent(pickupAddress)}`;
         }
     } catch (e) {
         alert.style.display = 'block';

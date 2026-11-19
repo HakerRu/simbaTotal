@@ -7,10 +7,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupLogout();
 });
 
+let adminUser = null;
+
 async function checkAdminAuth() {
     try {
         const data = await API.get('/auth/me');
         if (data.success && (data.user.role === 'admin' || data.user.role === 'manager')) {
+            adminUser = data.user;
             return data.user;
         }
     } catch (e) {}
@@ -28,12 +31,23 @@ function setupLogout() {
 }
 
 function setupSidebar() {
-    document.querySelectorAll('#adminSidebar .nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
+    const activateSection = (section) => {
+        document.querySelectorAll('#adminSidebar .nav-link').forEach(l => {
+            l.classList.toggle('active', l.dataset.section === section);
+        });
+        document.querySelectorAll('#adminMobileNav button').forEach(b => {
+            const isActive = b.dataset.section === section;
+            b.classList.toggle('active', isActive);
+            b.classList.toggle('btn-primary', isActive);
+            b.classList.toggle('btn-outline-secondary', !isActive);
+        });
+        loadSection(section);
+    };
+
+    document.querySelectorAll('#adminSidebar .nav-link, #adminMobileNav button').forEach(item => {
+        item.addEventListener('click', (e) => {
             e.preventDefault();
-            document.querySelectorAll('#adminSidebar .nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            loadSection(link.dataset.section);
+            activateSection(item.dataset.section);
         });
     });
 }
@@ -55,21 +69,37 @@ async function loadDashboard() {
             const usersData = await API.get('/admin/users');
             if (usersData.success) {
                 content.innerHTML = `
+                    ${adminUser?.role === 'admin' ? `
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="fw-bold">Назначить менеджера</h5>
+                            <p class="small text-muted">Только одобренный врач. Снять роль может только администратор, человек снова станет врачом.</p>
+                            <div class="input-group mb-3">
+                                <input type="search" class="form-control" id="managerSearch" placeholder="Имя или email врача">
+                                <button class="btn btn-primary" type="button" id="managerSearchBtn">Найти</button>
+                            </div>
+                            <div id="managerSearchResults"></div>
+                        </div>
+                    </div>` : ''}
                     <h5>Пользователи (${usersData.total || usersData.users?.length || 0})</h5>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th></tr></thead>
                             <tbody>${(usersData.users || []).map(u => `
                                 <tr>
-                                    <td>${u.userId}</td>
-                                    <td>${u.userFirstName} ${u.userLastName}</td>
-                                    <td>${u.userEmail}</td>
-                                    <td><span class="badge bg-primary">${u.role}</span></td>
+                                    <td>${escapeHtml(u.userId)}</td>
+                                    <td>${escapeHtml(u.userFirstName)} ${escapeHtml(u.userLastName)}</td>
+                                    <td>${escapeHtml(u.userEmail)}</td>
+                                    <td><span class="badge bg-primary">${escapeHtml(u.role)}</span></td>
                                     <td>${u.isActive ? '<span class="badge bg-success">Активен</span>' : '<span class="badge bg-danger">Заблокирован</span>'}</td>
                                 </tr>`).join('')}
                             </tbody>
                         </table>
                     </div>`;
+                document.getElementById('managerSearchBtn')?.addEventListener('click', searchManagers);
+                document.getElementById('managerSearch')?.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') searchManagers();
+                });
             }
         }
     } catch (e) {
@@ -77,16 +107,50 @@ async function loadDashboard() {
     }
 }
 
+async function searchManagers() {
+    const q = document.getElementById('managerSearch')?.value || '';
+    const box = document.getElementById('managerSearchResults');
+    if (!box) return;
+    try {
+        const data = await API.get(`/admin/staff-search?q=${encodeURIComponent(q)}`);
+        const users = data.users || [];
+        box.innerHTML = users.length ? users.map(user => `
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div>
+                    <strong>${escapeHtml(user.userFirstName)} ${escapeHtml(user.userLastName)}</strong>
+                    <small class="text-muted d-block">${escapeHtml(user.userEmail)} · ${escapeHtml(user.role === 'manager' ? 'менеджер' : 'врач')}</small>
+                </div>
+                <button type="button" class="btn btn-sm ${user.role === 'manager' ? 'btn-outline-danger' : 'btn-outline-primary'} rounded-pill manager-toggle" data-id="${escapeHtml(user.userId)}" data-appoint="${user.role === 'manager' ? '0' : '1'}">
+                    ${user.role === 'manager' ? 'Снять' : 'Назначить'}
+                </button>
+            </div>
+        `).join('') : '<p class="text-muted small mb-0">Никого не найдено среди одобренных врачей</p>';
+        box.querySelectorAll('.manager-toggle').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await API.put(`/admin/users/${btn.dataset.id}/manager`, { appoint: btn.dataset.appoint === '1' });
+                    searchManagers();
+                } catch (error) {
+                    alert(error.message || 'Не удалось изменить роль');
+                }
+            });
+        });
+    } catch (e) {
+        box.innerHTML = '<p class="text-danger small">Поиск доступен только администратору</p>';
+    }
+}
+
 function loadSection(section) {
     const content = document.getElementById('sectionContent');
     switch (section) {
-        case 'dashboard': content.innerHTML = ''; break;
+        case 'dashboard': content.innerHTML = ''; loadDashboard(); break;
         case 'orders': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadOrders(); break;
         case 'products': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadProducts(); break;
         case 'gallery': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadGallery(); break;
         case 'certificates': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadCertificates(); break;
         case 'categories': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadCategoriesAdmin(); break;
         case 'users': content.innerHTML = '<h5>Управление пользователями</h5><p class="text-muted">Загрузка...</p>'; loadUsers(); break;
+        case 'blocked': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadBlockedUsers(); break;
         case 'doctors': content.innerHTML = '<h5>Одобрение врачей</h5><p class="text-muted">Загрузка...</p>'; loadPendingDoctors(); break;
         case 'posts': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadPosts(); break;
         case 'services': content.innerHTML = '<p class="text-muted">Загрузка...</p>'; loadServices(); break;
@@ -132,6 +196,7 @@ function renderOrders(orders) {
                     <th>Номер</th>
                     <th>Клиент</th>
                     <th>Телефон</th>
+                    <th>Филиал</th>
                     <th>Дата выдачи</th>
                     <th>Сумма</th>
                     <th>Статус</th>
@@ -139,10 +204,11 @@ function renderOrders(orders) {
                 </tr></thead>
                 <tbody>${orders.map(o => `
                     <tr>
-                        <td><strong>${o.orderNumber}</strong></td>
-                        <td>${o.customerName}</td>
-                        <td>${o.customerPhone}</td>
-                        <td>${new Date(o.pickupDate).toLocaleDateString('ru-RU')} ${o.pickupTime?.substring(0,5) || ''}</td>
+                        <td><strong>${escapeHtml(o.orderNumber)}</strong></td>
+                        <td>${escapeHtml(o.customerName)}</td>
+                        <td>${escapeHtml(o.customerPhone)}</td>
+                        <td class="small">${escapeHtml(o.pickupAddress || '—')}</td>
+                        <td>${new Date(o.pickupDate).toLocaleDateString('ru-RU')} ${escapeHtml(o.pickupTime?.substring(0,5) || '')}</td>
                         <td class="fw-bold">${Number(o.totalAmount).toLocaleString()} ₽</td>
                         <td>
                             <select class="form-select form-select-sm order-status-select" data-id="${o.orderId}" style="width:auto">
@@ -179,8 +245,13 @@ function renderOrders(orders) {
 
     document.querySelectorAll('.order-status-select').forEach(sel => {
         sel.addEventListener('change', async () => {
-            await API.put(`/shop/orders/${sel.dataset.id}/status`, { orderStatus: sel.value });
-            loadOrders();
+            try {
+                await API.put(`/shop/orders/${sel.dataset.id}/status`, { orderStatus: sel.value });
+                loadOrders();
+            } catch (e) {
+                alert(e.message || 'Ошибка обновления статуса');
+                loadOrders();
+            }
         });
     });
 
@@ -191,8 +262,12 @@ function renderOrders(orders) {
     document.querySelectorAll('.delete-order').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (confirm('Удалить заказ навсегда?')) {
-                await API.delete('/shop/orders/' + btn.dataset.id);
-                loadOrders();
+                try {
+                    await API.delete('/shop/orders/' + btn.dataset.id);
+                    loadOrders();
+                } catch (e) {
+                    alert(e.message || 'Ошибка удаления');
+                }
             }
         });
     });
@@ -213,7 +288,7 @@ function showOrderDetails(orderId) {
 
     document.getElementById('sectionContent').innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>Заказ ${order.orderNumber}</h5>
+            <h5>Заказ ${escapeHtml(order.orderNumber)}</h5>
             <button class="btn btn-outline-secondary rounded-pill" id="backToOrders">← Назад</button>
         </div>
 
@@ -222,9 +297,9 @@ function showOrderDetails(orderId) {
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-person text-primary"></i> Клиент</h6>
-                        <p class="mb-1"><strong>${order.customerName}</strong></p>
-                        <p class="mb-1 text-muted">${order.customerPhone}</p>
-                        ${order.userEmail ? `<p class="mb-0 text-muted small">${order.userEmail}</p>` : ''}
+                        <p class="mb-1"><strong>${escapeHtml(order.customerName)}</strong></p>
+                        <p class="mb-1 text-muted">${escapeHtml(order.customerPhone)}</p>
+                        ${order.userEmail ? `<p class="mb-0 text-muted small">${escapeHtml(order.userEmail)}</p>` : ''}
                     </div>
                 </div>
             </div>
@@ -233,8 +308,9 @@ function showOrderDetails(orderId) {
                     <div class="card-body">
                         <h6 class="fw-bold mb-3"><i class="bi bi-calendar-check text-primary"></i> Самовывоз</h6>
                         <p class="mb-1"><strong>${new Date(order.pickupDate).toLocaleDateString('ru-RU')}</strong></p>
-                        <p class="mb-1 text-muted">${order.pickupTime?.substring(0,5) || ''}</p>
-                        <span class="badge bg-${st.color}">${st.text}</span>
+                        <p class="mb-1 text-muted">${escapeHtml(order.pickupTime?.substring(0,5) || '')}</p>
+                        ${order.pickupAddress ? `<p class="mb-2 small"><i class="bi bi-geo-alt text-primary"></i> ${escapeHtml(order.pickupAddress)}</p>` : ''}
+                        <span class="badge bg-${st.color}">${escapeHtml(st.text)}</span>
                     </div>
                 </div>
             </div>
@@ -247,7 +323,7 @@ function showOrderDetails(orderId) {
                             <tbody>
                                 ${items.map(i => `
                                     <tr>
-                                        <td>${i.productName}</td>
+                                        <td>${escapeHtml(i.productName)}</td>
                                         <td>${i.quantity}</td>
                                         <td>${Number(i.price).toLocaleString()} ₽</td>
                                         <td class="fw-bold">${Number(i.price * i.quantity).toLocaleString()} ₽</td>
@@ -260,7 +336,7 @@ function showOrderDetails(orderId) {
                                 </tr>
                             </tfoot>
                         </table>
-                        ${order.orderNotes ? `<p class="text-muted small mb-0"><strong>Примечание:</strong> ${order.orderNotes}</p>` : ''}
+                        ${order.orderNotes ? `<p class="text-muted small mb-0"><strong>Примечание:</strong> ${escapeHtml(order.orderNotes)}</p>` : ''}
                     </div>
                 </div>
             </div>
@@ -288,17 +364,17 @@ async function loadProducts() {
                         <thead><tr><th>ID</th><th>Фото</th><th>Название</th><th>Цена</th><th>Остаток</th><th>Действия</th></tr></thead>
                         <tbody>${data.products.map(p => `
                             <tr>
-                                <td>${p.productId}</td>
+                                <td>${escapeHtml(p.productId)}</td>
                                 <td>
-                                    ${p.mainImage ? `
-                                        <img src="${p.mainImage}" style="width:50px;height:50px;object-fit:cover" class="rounded-2">
+                                    ${safeUrl(p.mainImage) ? `
+                                        <img src="${safeUrl(p.mainImage)}" style="width:50px;height:50px;object-fit:cover" class="rounded-2">
                                     ` : `
                                         <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width:50px;height:50px">
                                             <i class="bi bi-image text-muted"></i>
                                         </div>
                                     `}
                                 </td>
-                                <td>${p.productName}</td>
+                                <td>${escapeHtml(p.productName)}</td>
                                 <td>${Number(p.productPrice).toLocaleString()} ₽</td>
                                 <td>${p.stockQuantity}</td>
                                 <td>
@@ -318,8 +394,12 @@ async function loadProducts() {
             document.querySelectorAll('.delete-product').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('Удалить товар?')) {
-                        await API.delete('/shop/products/' + btn.dataset.id);
-                        loadProducts();
+                        try {
+                            await API.delete('/shop/products/' + btn.dataset.id);
+                            loadProducts();
+                        } catch (err) {
+                            alert(err.message || 'Ошибка удаления товара');
+                        }
                     }
                 });
             });
@@ -444,22 +524,22 @@ async function showEditProductForm(productId) {
 
         document.getElementById('sectionContent').innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Редактирование: ${p.productName}</h5>
+                <h5>Редактирование: ${escapeHtml(p.productName)}</h5>
                 <button class="btn btn-outline-secondary rounded-pill" id="backToProducts">← Назад</button>
             </div>
             <form id="editProductForm">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Название</label>
-                        <input type="text" class="form-control" id="editProductName" value="${p.productName}" required>
+                        <input type="text" class="form-control" id="editProductName" value="${escapeHtml(p.productName)}" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold">Цена ₽</label>
-                        <input type="number" class="form-control" id="editProductPrice" value="${p.productPrice}" min="0" step="0.01" required>
+                        <input type="number" class="form-control" id="editProductPrice" value="${escapeHtml(p.productPrice)}" min="0" step="0.01" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold">Количество</label>
-                        <input type="number" class="form-control" id="editStockQuantity" value="${p.stockQuantity}" min="0" required>
+                        <input type="number" class="form-control" id="editStockQuantity" value="${escapeHtml(p.stockQuantity)}" min="0" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Категория</label>
@@ -469,11 +549,11 @@ async function showEditProductForm(productId) {
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Скидка ₽</label>
-                        <input type="number" class="form-control" id="editDiscountPrice" value="${p.productDiscountPrice || ''}" min="0" step="0.01">
+                        <input type="number" class="form-control" id="editDiscountPrice" value="${escapeHtml(p.productDiscountPrice || '')}" min="0" step="0.01">
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-semibold">Описание</label>
-                        <textarea class="form-control" id="editDescription" rows="4">${p.productDescription || ''}</textarea>
+                        <textarea class="form-control" id="editDescription" rows="4">${escapeHtml(p.productDescription || '')}</textarea>
                     </div>
                     
                     <div class="col-12">
@@ -483,7 +563,7 @@ async function showEditProductForm(productId) {
             existingImages.map(img => `
                                 <div class="col-4 col-md-2">
                                     <div class="position-relative">
-                                        <img src="${img.imageUrl}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover">
+                                        <img src="${safeUrl(img.imageUrl)}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover">
                                         ${img.isMain ? '<span class="badge bg-primary position-absolute top-0 start-0 m-1 small">Главное</span>' : ''}
                                     </div>
                                 </div>
@@ -591,7 +671,7 @@ async function loadCategoriesToSelect(selectId = 'categoryId', selectedId = null
         if (data.success && select) {
             function render(cats, level = 0) {
                 cats.forEach(cat => {
-                    select.innerHTML += `<option value="${cat.categoryId}" ${cat.categoryId == selectedId ? 'selected' : ''}>${'—'.repeat(level)} ${cat.categoryName}</option>`;
+                    select.innerHTML += `<option value="${escapeHtml(cat.categoryId)}" ${cat.categoryId == selectedId ? 'selected' : ''}>${'—'.repeat(level)} ${escapeHtml(cat.categoryName)}</option>`;
                     if (cat.children) render(cat.children, level + 1);
                 });
             }
@@ -612,16 +692,63 @@ async function loadUsers() {
                         <thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th></tr></thead>
                         <tbody>${(data.users || []).map(u => `
                             <tr>
-                                <td>${u.userId}</td>
-                                <td>${u.userFirstName} ${u.userLastName}</td>
-                                <td>${u.userEmail}</td>
-                                <td><span class="badge bg-primary">${u.role}</span></td>
+                                <td>${escapeHtml(u.userId)}</td>
+                                <td>${escapeHtml(u.userFirstName)} ${escapeHtml(u.userLastName)}</td>
+                                <td>${escapeHtml(u.userEmail)}</td>
+                                <td><span class="badge bg-primary">${escapeHtml(u.role)}</span></td>
                                 <td>${u.isActive ? '<span class="badge bg-success">Активен</span>' : '<span class="badge bg-danger">Заблокирован</span>'}</td>
                             </tr>`).join('')}
                         </tbody>
                     </table>
                 </div>`;
         }
+    } catch (e) {
+        document.getElementById('sectionContent').innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
+    }
+}
+
+async function loadBlockedUsers() {
+    try {
+        const data = await API.get('/admin/users/blocked');
+        const users = data.users || [];
+        const reason = { user: 'отменил сам', noshow: 'не забрал', staff: 'отменила клиника' };
+        document.getElementById('sectionContent').innerHTML = `
+            <h5>Заблокированные заказы (${users.length})</h5>
+            <p class="small text-muted">Два незабора закрывают новые заказы. Разблокировка обнуляет счётчик. Человек может зайти в аккаунт и без этого.</p>
+            ${users.length === 0 ? '<p class="text-muted">Таких пользователей нет</p>' : users.map(user => `
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <strong>${escapeHtml(user.userFirstName)} ${escapeHtml(user.userLastName)}</strong>
+                                <small class="text-muted d-block">${escapeHtml(user.userEmail)} · ${escapeHtml(user.userPhone || 'телефон не указан')}</small>
+                                <small class="text-muted">Незаборов: ${user.noShowCount || 0}</small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-success rounded-pill unblock-orders" data-id="${escapeHtml(user.userId)}">Разблокировать</button>
+                        </div>
+                        <div class="mt-3">
+                            ${(user.cancelledOrders || []).map(order => `
+                                <div class="border-top pt-2 mt-2 small">
+                                    <strong>${escapeHtml(order.orderNumber)}</strong>
+                                    <span class="text-muted">${escapeHtml(reason[order.cancelReason] || 'отменён')}</span>
+                                    <div class="text-muted">${new Date(order.pickupDate).toLocaleDateString('ru-RU')} ${escapeHtml(String(order.pickupTime || '').substring(0, 5))} · ${escapeHtml(order.pickupAddress || '')}</div>
+                                    <div>${(order.items || []).map(item => `${escapeHtml(item.productName)} × ${item.quantity}`).join(', ') || 'Состав не сохранился'}</div>
+                                </div>
+                            `).join('') || '<p class="small text-muted mb-0 mt-2">Отменённых заказов нет</p>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}`;
+        document.querySelectorAll('.unblock-orders').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await API.put(`/admin/users/${btn.dataset.id}/unblock-orders`);
+                    loadBlockedUsers();
+                } catch (error) {
+                    alert(error.message || 'Не удалось разблокировать');
+                }
+            });
+        });
     } catch (e) {
         document.getElementById('sectionContent').innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
     }
@@ -640,26 +767,34 @@ async function loadPendingDoctors() {
                     <div class="card mb-2 p-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>${d.userFirstName} ${d.userLastName}</strong>
-                                <small class="text-muted ms-2">${d.userEmail}</small>
+                                <strong>${escapeHtml(d.userFirstName)} ${escapeHtml(d.userLastName)}</strong>
+                                <small class="text-muted ms-2">${escapeHtml(d.userEmail)}</small>
                             </div>
                             <div>
-                                <button class="btn btn-success btn-sm rounded-pill approve-doctor" data-id="${d.userId}">Одобрить</button>
-                                <button class="btn btn-danger btn-sm rounded-pill reject-doctor" data-id="${d.userId}">Отклонить</button>
+                                <button class="btn btn-success btn-sm rounded-pill approve-doctor" data-id="${escapeHtml(d.userId)}">Одобрить</button>
+                                <button class="btn btn-danger btn-sm rounded-pill reject-doctor" data-id="${escapeHtml(d.userId)}">Отклонить</button>
                             </div>
                         </div>
                     </div>`).join('')}`;
 
             document.querySelectorAll('.approve-doctor').forEach(btn => {
                 btn.addEventListener('click', async () => {
-                    await API.put('/admin/users/' + btn.dataset.id, { doctorStatus: 'approved' });
-                    loadPendingDoctors();
+                    try {
+                        await API.put('/admin/users/' + btn.dataset.id, { doctorStatus: 'approved' });
+                        loadPendingDoctors();
+                    } catch (err) {
+                        alert(err.message || 'Ошибка');
+                    }
                 });
             });
             document.querySelectorAll('.reject-doctor').forEach(btn => {
                 btn.addEventListener('click', async () => {
-                    await API.put('/admin/users/' + btn.dataset.id, { doctorStatus: 'rejected' });
-                    loadPendingDoctors();
+                    try {
+                        await API.put('/admin/users/' + btn.dataset.id, { doctorStatus: 'rejected' });
+                        loadPendingDoctors();
+                    } catch (err) {
+                        alert(err.message || 'Ошибка');
+                    }
                 });
             });
         }
@@ -693,9 +828,9 @@ async function loadServices() {
                         </tr></thead>
                         <tbody>${data.services.map(s => `
                             <tr>
-                                <td>${s.serviceId}</td>
-                                <td>${s.serviceName}</td>
-                                <td><span class="badge bg-primary bg-opacity-10 text-primary">${s.categoryName || '—'}</span></td>
+                                <td>${escapeHtml(s.serviceId)}</td>
+                                <td>${escapeHtml(s.serviceName)}</td>
+                                <td><span class="badge bg-primary bg-opacity-10 text-primary">${escapeHtml(s.categoryName || '—')}</span></td>
                                 <td>${Number(s.servicePrice).toLocaleString()} ₽</td>
                                 <td>${s.durationMinutes} мин</td>
                                 <td>
@@ -714,8 +849,12 @@ async function loadServices() {
             document.querySelectorAll('.delete-service').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('Удалить услугу?')) {
-                        await API.delete('/services/' + btn.dataset.id);
-                        loadServices();
+                        try {
+                            await API.delete('/services/' + btn.dataset.id);
+                            loadServices();
+                        } catch (err) {
+                            alert(err.message || 'Ошибка удаления услуги');
+                        }
                     }
                 });
             });
@@ -790,14 +929,14 @@ async function showEditServiceForm(serviceId) {
 
         document.getElementById('sectionContent').innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Редактирование: ${s.serviceName}</h5>
+                <h5>Редактирование: ${escapeHtml(s.serviceName)}</h5>
                 <button class="btn btn-outline-secondary rounded-pill" id="backToServices">← Назад</button>
             </div>
             <form id="editServiceForm">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Название</label>
-                        <input type="text" class="form-control" id="editServiceName" value="${s.serviceName}" required>
+                        <input type="text" class="form-control" id="editServiceName" value="${escapeHtml(s.serviceName)}" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Категория</label>
@@ -807,15 +946,15 @@ async function showEditServiceForm(serviceId) {
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold">Цена ₽</label>
-                        <input type="number" class="form-control" id="editServicePrice" value="${s.servicePrice}" min="0" step="0.01" required>
+                        <input type="number" class="form-control" id="editServicePrice" value="${escapeHtml(s.servicePrice)}" min="0" step="0.01" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold">Длительность (мин)</label>
-                        <input type="number" class="form-control" id="editDuration" value="${s.durationMinutes}" min="5" required>
+                        <input type="number" class="form-control" id="editDuration" value="${escapeHtml(s.durationMinutes)}" min="5" required>
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-semibold">Описание</label>
-                        <textarea class="form-control" id="editServiceDesc" rows="4">${s.serviceDescription || ''}</textarea>
+                        <textarea class="form-control" id="editServiceDesc" rows="4">${escapeHtml(s.serviceDescription || '')}</textarea>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">
@@ -921,9 +1060,9 @@ async function renderCategoriesList() {
                     </tr></thead>
                     <tbody>${categories.map(c => `
                         <tr>
-                            <td>${c.categoryId}</td>
-                            <td>${c._indent || ''}${c.categoryName}</td>
-                            <td class="text-muted small">${(c.categoryDescription || '').substring(0, 60)}</td>
+                            <td>${escapeHtml(c.categoryId)}</td>
+                            <td>${c._indent || ''}${escapeHtml(c.categoryName)}</td>
+                            <td class="text-muted small">${escapeHtml((c.categoryDescription || '').substring(0, 60))}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary rounded-pill edit-category" data-id="${c.categoryId}">
                                     <i class="bi bi-pencil"></i>
@@ -946,8 +1085,12 @@ async function renderCategoriesList() {
                     const url = categoriesType === 'products'
                         ? '/shop/categories/'
                         : '/services/categories/';
-                    await API.delete(url + btn.dataset.id);
-                    renderCategoriesList();
+                    try {
+                        await API.delete(url + btn.dataset.id);
+                        renderCategoriesList();
+                    } catch (err) {
+                        alert(err.message || 'Ошибка удаления категории');
+                    }
                 }
             });
         });
@@ -1026,18 +1169,18 @@ async function showEditCategoryForm(categoryId) {
 
     document.getElementById('sectionContent').innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>Редактирование: ${category.categoryName}</h5>
+            <h5>Редактирование: ${escapeHtml(category.categoryName)}</h5>
             <button class="btn btn-outline-secondary rounded-pill" id="backToCategories">← Назад</button>
         </div>
         <form id="editCategoryForm">
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label small fw-semibold">Название</label>
-                    <input type="text" class="form-control" id="editCategoryName" value="${category.categoryName}" required>
+                    <input type="text" class="form-control" id="editCategoryName" value="${escapeHtml(category.categoryName)}" required>
                 </div>
                 <div class="col-12">
                     <label class="form-label small fw-semibold">Описание</label>
-                    <textarea class="form-control" id="editCategoryDescription" rows="3">${category.categoryDescription || ''}</textarea>
+                    <textarea class="form-control" id="editCategoryDescription" rows="3">${escapeHtml(category.categoryDescription || '')}</textarea>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">
@@ -1068,7 +1211,7 @@ async function loadServiceCategories(selectId, selectedId = null) {
         const select = document.getElementById(selectId);
         if (data.success && select) {
             data.categories.forEach(cat => {
-                select.innerHTML += `<option value="${cat.categoryId}" ${cat.categoryId == selectedId ? 'selected' : ''}>${cat.categoryName}</option>`;
+                select.innerHTML += `<option value="${escapeHtml(cat.categoryId)}" ${cat.categoryId == selectedId ? 'selected' : ''}>${escapeHtml(cat.categoryName)}</option>`;
             });
         }
     } catch (e) {}
@@ -1099,7 +1242,7 @@ async function loadPosts() {
                             <th>Действия</th>
                         </tr></thead>
                         <tbody>${data.posts.map(p => {
-                const cover = p.media && p.media[0] ? p.media[0].mediaUrl : null;
+                const cover = p.media && p.media[0] ? safeUrl(p.media[0].mediaUrl) : '';
                 return `
                             <tr>
                                 <td>${p.postId}</td>
@@ -1112,7 +1255,7 @@ async function loadPosts() {
                                         </div>
                                     `}
                                 </td>
-                                <td>${p.postTitle}</td>
+                                <td>${escapeHtml(p.postTitle)}</td>
                                 <td><span class="badge bg-primary">${p.postType === 'reel' ? '🎬 Рилс' : '📝 Статья'}</span></td>
                                 <td>${p.postViews}</td>
                                 <td>${p.isPublished ? '<span class="badge bg-success">Опубликован</span>' : '<span class="badge bg-secondary">Черновик</span>'}</td>
@@ -1133,8 +1276,12 @@ async function loadPosts() {
             document.querySelectorAll('.delete-post').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('Удалить пост?')) {
-                        await API.delete('/blog/' + btn.dataset.id);
-                        loadPosts();
+                        try {
+                            await API.delete('/blog/' + btn.dataset.id);
+                            loadPosts();
+                        } catch (err) {
+                            alert(err.message || 'Ошибка удаления поста');
+                        }
                     }
                 });
             });
@@ -1249,14 +1396,14 @@ async function showEditPostForm(postId) {
 
         document.getElementById('sectionContent').innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Редактирование: ${p.postTitle}</h5>
+                <h5>Редактирование: ${escapeHtml(p.postTitle)}</h5>
                 <button class="btn btn-outline-secondary rounded-pill" id="backToPosts">← Назад</button>
             </div>
             <form id="editPostForm">
                 <div class="row g-3">
                     <div class="col-md-8">
                         <label class="form-label small fw-semibold">Заголовок</label>
-                        <input type="text" class="form-control" id="editPostTitle" value="${p.postTitle}" required>
+                        <input type="text" class="form-control" id="editPostTitle" value="${escapeHtml(p.postTitle)}" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold">Тип</label>
@@ -1267,21 +1414,25 @@ async function showEditPostForm(postId) {
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-semibold">Содержание</label>
-                        <textarea class="form-control" id="editPostContent" rows="8">${p.postContent || ''}</textarea>
+                        <textarea class="form-control" id="editPostContent" rows="8">${escapeHtml(p.postContent || '')}</textarea>
                     </div>
                     ${p.media && p.media.length > 0 ? `
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Текущие медиа</label>
                             <div class="row g-2">
-                                ${p.media.map(m => `
+                                ${p.media.map(m => {
+                                    const mediaSrc = safeUrl(m.mediaUrl);
+                                    if (!mediaSrc) return '';
+                                    return `
                                     <div class="col-4 col-md-2">
                                         ${m.mediaType === 'video' ? `
-                                            <video src="${m.mediaUrl}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover" muted></video>
+                                            <video src="${mediaSrc}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover" muted></video>
                                         ` : `
-                                            <img src="${m.mediaUrl}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover">
+                                            <img src="${mediaSrc}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover">
                                         `}
                                     </div>
-                                `).join('')}
+                                `;
+                                }).join('')}
                             </div>
                         </div>
                     ` : ''}
@@ -1407,12 +1558,14 @@ async function loadGallery() {
                 </div>
                 ${data.albums.length === 0 ? '<p class="text-muted">Альбомов нет</p>' : `
                 <div class="row g-3">
-                    ${data.albums.map(a => `
+                    ${data.albums.map(a => {
+                        const coverUrl = safeUrl(a.coverImageUrl);
+                        return `
                         <div class="col-6 col-md-4 col-lg-3">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="position-relative" style="aspect-ratio:1;overflow:hidden">
-                                    ${a.coverImageUrl ? `
-                                        <img src="${a.coverImageUrl}" class="w-100 h-100" style="object-fit:cover">
+                                    ${coverUrl ? `
+                                        <img src="${coverUrl}" class="w-100 h-100" style="object-fit:cover">
                                     ` : `
                                         <div class="bg-light d-flex align-items-center justify-content-center h-100">
                                             <i class="bi bi-images text-muted fs-1"></i>
@@ -1423,7 +1576,7 @@ async function loadGallery() {
                                     </span>
                                 </div>
                                 <div class="card-body py-2">
-                                    <h6 class="fw-bold mb-2 text-truncate">${a.albumName}</h6>
+                                    <h6 class="fw-bold mb-2 text-truncate">${escapeHtml(a.albumName)}</h6>
                                     <div class="d-flex gap-1">
                                         <button class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1 edit-album" data-id="${a.albumId}">
                                             <i class="bi bi-pencil"></i>
@@ -1435,7 +1588,7 @@ async function loadGallery() {
                                 </div>
                             </div>
                         </div>
-                    `).join('')}
+                    `; }).join('')}
                 </div>`}`;
 
             document.getElementById('addAlbumBtn').addEventListener('click', showAddAlbumForm);
@@ -1445,8 +1598,12 @@ async function loadGallery() {
             document.querySelectorAll('.delete-album').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('Удалить альбом со всеми фото?')) {
-                        await API.delete('/gallery/albums/' + btn.dataset.id);
-                        loadGallery();
+                        try {
+                            await API.delete('/gallery/albums/' + btn.dataset.id);
+                            loadGallery();
+                        } catch (err) {
+                            alert(err.message || 'Ошибка удаления альбома');
+                        }
                     }
                 });
             });
@@ -1536,24 +1693,27 @@ async function showEditAlbumForm(albumId) {
 
         document.getElementById('sectionContent').innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Редактирование: ${a.albumName}</h5>
+                <h5>Редактирование: ${escapeHtml(a.albumName)}</h5>
                 <button class="btn btn-outline-secondary rounded-pill" id="backToGallery">← Назад</button>
             </div>
             <form id="editAlbumForm">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Название</label>
-                        <input type="text" class="form-control" id="editAlbumName" value="${a.albumName}" required>
+                        <input type="text" class="form-control" id="editAlbumName" value="${escapeHtml(a.albumName)}" required>
                     </div>
                     
                     <div class="col-12">
                         <label class="form-label small fw-semibold">Текущие фото (${a.photos ? a.photos.length : 0})</label>
                         <div class="row g-2">
-                            ${(a.photos || []).map(p => `
+                            ${(a.photos || []).map(p => {
+                                const photoSrc = safeUrl(p.photoUrl);
+                                return photoSrc ? `
                                 <div class="col-4 col-md-2">
-                                    <img src="${p.photoUrl}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover">
+                                    <img src="${photoSrc}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover">
                                 </div>
-                            `).join('')}
+                            ` : '';
+                            }).join('')}
                         </div>
                     </div>
                     
@@ -1659,14 +1819,15 @@ async function loadCertificates() {
                             <th>Действия</th>
                         </tr></thead>
                         <tbody>${data.certificates.map(c => {
-                const isPDF = c.fileUrl && c.fileUrl.toLowerCase().endsWith('.pdf');
-                const isImage = c.fileUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(c.fileUrl);
+                const fileUrl = safeUrl(c.fileUrl);
+                const isPDF = fileUrl && fileUrl.toLowerCase().endsWith('.pdf');
+                const isImage = fileUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl);
                 return `
                             <tr>
                                 <td>${c.certificateId}</td>
                                 <td>
                                     ${isImage ? `
-                                        <img src="${c.fileUrl}" style="width:60px;height:40px;object-fit:cover" class="rounded-2">
+                                        <img src="${fileUrl}" style="width:60px;height:40px;object-fit:cover" class="rounded-2">
                                     ` : isPDF ? `
                                         <div class="bg-danger bg-opacity-10 rounded-2 d-flex align-items-center justify-content-center" style="width:60px;height:40px">
                                             <i class="bi bi-file-pdf text-danger"></i>
@@ -1677,7 +1838,7 @@ async function loadCertificates() {
                                         </div>
                                     `}
                                 </td>
-                                <td>${c.certificateName}</td>
+                                <td>${escapeHtml(c.certificateName)}</td>
                                 <td>${c.issueDate ? new Date(c.issueDate).toLocaleDateString('ru-RU') : '—'}</td>
                                 <td>${c.isPublished ? '<span class="badge bg-success">Опубликован</span>' : '<span class="badge bg-secondary">Черновик</span>'}</td>
                                 <td>
@@ -1697,8 +1858,12 @@ async function loadCertificates() {
             document.querySelectorAll('.delete-cert').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     if (confirm('Удалить сертификат?')) {
-                        await API.delete('/certificates/' + btn.dataset.id);
-                        loadCertificates();
+                        try {
+                            await API.delete('/certificates/' + btn.dataset.id);
+                            loadCertificates();
+                        } catch (err) {
+                            alert(err.message || 'Ошибка удаления сертификата');
+                        }
                     }
                 });
             });
@@ -1808,38 +1973,39 @@ async function showEditCertificateForm(certId) {
         const isPDF = c.fileUrl && c.fileUrl.toLowerCase().endsWith('.pdf');
         const isImage = c.fileUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(c.fileUrl);
 
+        const safeFileUrl = safeUrl(c.fileUrl);
         document.getElementById('sectionContent').innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Редактирование: ${c.certificateName}</h5>
+                <h5>Редактирование: ${escapeHtml(c.certificateName)}</h5>
                 <button class="btn btn-outline-secondary rounded-pill" id="backToCerts">← Назад</button>
             </div>
             <form id="editCertForm">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Название</label>
-                        <input type="text" class="form-control" id="editCertName" value="${c.certificateName}" required>
+                        <input type="text" class="form-control" id="editCertName" value="${escapeHtml(c.certificateName)}" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold">Дата выдачи</label>
-                        <input type="date" class="form-control" id="editCertDate" value="${c.issueDate ? c.issueDate.substring(0,10) : ''}">
+                        <input type="date" class="form-control" id="editCertDate" value="${c.issueDate ? escapeHtml(c.issueDate.substring(0,10)) : ''}">
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-semibold">Описание</label>
-                        <textarea class="form-control" id="editCertDescription" rows="2">${c.certificateDescription || ''}</textarea>
+                        <textarea class="form-control" id="editCertDescription" rows="2">${escapeHtml(c.certificateDescription || '')}</textarea>
                     </div>
                     
-                    ${c.fileUrl ? `
+                    ${safeFileUrl ? `
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Текущий файл</label>
                             <div>
                                 ${isImage ? `
-                                    <img src="${c.fileUrl}" class="rounded-3" style="max-height:150px">
+                                    <img src="${safeFileUrl}" class="rounded-3" style="max-height:150px">
                                 ` : isPDF ? `
-                                    <a href="${c.fileUrl}" target="_blank" class="btn btn-outline-danger rounded-pill">
+                                    <a href="${safeFileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger rounded-pill">
                                         <i class="bi bi-file-pdf"></i> Открыть PDF
                                     </a>
                                 ` : `
-                                    <a href="${c.fileUrl}" target="_blank" class="btn btn-outline-secondary rounded-pill">
+                                    <a href="${safeFileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary rounded-pill">
                                         Открыть файл
                                     </a>
                                 `}
@@ -1928,7 +2094,7 @@ function setupCertFilePreview(inputId = 'certFile', previewId = 'certFilePreview
             preview.innerHTML = `
                 <div class="d-flex align-items-center gap-2 text-danger">
                     <i class="bi bi-file-pdf fs-3"></i>
-                    <span>${file.name}</span>
+                    <span>${escapeHtml(file.name)}</span>
                 </div>`;
         } else if (file.type.startsWith('image/')) {
             const reader = new FileReader();

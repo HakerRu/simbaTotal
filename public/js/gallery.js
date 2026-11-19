@@ -35,10 +35,10 @@ function renderAlbums() {
 
     container.innerHTML = galleryState.albums.map(album => `
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="card album-card border-0 shadow-sm h-100" data-album-id="${album.albumId}" style="cursor:pointer">
+            <div class="card album-card border-0 shadow-sm h-100" data-album-id="${escapeHtml(album.albumId)}" style="cursor:pointer">
                 <div class="position-relative overflow-hidden" style="height:200px">
-                    ${album.coverImageUrl ? `
-                        <img src="${album.coverImageUrl}" class="card-img-top h-100 w-100" alt="${album.albumName}" style="object-fit:cover">
+                    ${safeUrl(album.coverImageUrl) ? `
+                        <img src="${safeUrl(album.coverImageUrl)}" class="card-img-top h-100 w-100" alt="${escapeHtml(album.albumName)}" style="object-fit:cover">
                     ` : `
                         <div class="bg-light d-flex align-items-center justify-content-center h-100">
                             <i class="bi bi-folder2 text-muted fs-1"></i>
@@ -49,8 +49,8 @@ function renderAlbums() {
                     </div>
                 </div>
                 <div class="card-body">
-                    <h6 class="card-title fw-bold mb-1">${album.albumName}</h6>
-                    <small class="text-muted">${(album.albumDescription || '').substring(0, 60)}</small>
+                    <h6 class="card-title fw-bold mb-1">${escapeHtml(album.albumName)}</h6>
+                    <small class="text-muted">${escapeHtml((album.albumDescription || '').substring(0, 60))}</small>
                 </div>
             </div>
         </div>

@@ -1,4 +1,7 @@
 const Certificate = require('../models/Certificate');
+const { deleteManyFromS3 } = require('../utils/s3');
+
+const isStaff = (req) => Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'manager'));
 
 exports.getCertificates = async (req, res) => {
     try {
@@ -21,7 +24,7 @@ exports.getAllCertificatesAdmin = async (req, res) => {
 
 exports.getCertificate = async (req, res) => {
     try {
-        const certificate = await Certificate.getById(req.params.id);
+        const certificate = await Certificate.getById(req.params.id, { publishedOnly: !isStaff(req) });
         if (!certificate) return res.status(404).json({ success: false, message: 'Сертификат не найден' });
         res.json({ success: true, certificate });
     } catch (e) {
@@ -55,7 +58,16 @@ exports.createCertificate = async (req, res) => {
 
 exports.updateCertificate = async (req, res) => {
     try {
+        const existing = await Certificate.getById(req.params.id, { publishedOnly: false });
+        if (!existing) {
+            return res.status(404).json({ success: false, message: 'Сертификат не найден' });
+        }
+
         const certificate = await Certificate.update(req.params.id, req.body);
+        if (req.body.fileKey && existing.fileKey && req.body.fileKey !== existing.fileKey) {
+            await deleteManyFromS3([existing.fileKey]);
+        }
+
         res.json({ success: true, certificate });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });
@@ -64,7 +76,11 @@ exports.updateCertificate = async (req, res) => {
 
 exports.deleteCertificate = async (req, res) => {
     try {
+        const existing = await Certificate.getById(req.params.id, { publishedOnly: false });
         await Certificate.delete(req.params.id);
+        if (existing?.fileKey) {
+            await deleteManyFromS3([existing.fileKey]);
+        }
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка удаления' });

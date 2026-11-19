@@ -33,22 +33,54 @@ async function loadService(id) {
 
         const s = data.service;
 
+        document.title = `${s.serviceName} в Нижнем Тагиле — цены и запись | ВетКлиника «Симба»`;
+
+        // Schema.org Service microdata для Яндекса
+        const existingSchema = document.getElementById('serviceSchemaJsonLd');
+        if (existingSchema) existingSchema.remove();
+        const schemaScript = document.createElement('script');
+        schemaScript.id = 'serviceSchemaJsonLd';
+        schemaScript.type = 'application/ld+json';
+        schemaScript.textContent = JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Service',
+            'name': s.serviceName,
+            'description': s.serviceDescription || `${s.serviceName} в ветеринарной клинике «Симба» (г. Нижний Тагил).`,
+            'provider': {
+                '@type': 'VeterinaryCare',
+                'name': 'ВетКлиника «Симба»',
+                'telephone': '+7-3435-46-06-45',
+                'address': {
+                    '@type': 'PostalAddress',
+                    'addressLocality': 'Нижний Тагил',
+                    'addressRegion': 'Свердловская область'
+                }
+            },
+            'offers': {
+                '@type': 'Offer',
+                'url': window.location.href,
+                'price': Number(s.servicePrice),
+                'priceCurrency': 'RUB'
+            }
+        });
+        document.head.appendChild(schemaScript);
+
         container.innerHTML = `
             <div class="row g-4 g-lg-5">
                 <div class="col-lg-7">
-                    <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">
-                        ${s.categoryName || 'Услуга'}
+                    <span class="badge bg-coral-soft mb-2 px-3 py-2 rounded-pill">
+                        ${escapeHtml(s.categoryName || 'Услуга')}
                     </span>
-                    <h1 class="fw-bold mb-3">${s.serviceName}</h1>
+                    <h1 class="fw-bold mb-3">${escapeHtml(s.serviceName)}</h1>
                     
                     ${s.serviceDescription ? `
-                        <p class="text-muted mb-4" style="white-space:pre-line">${s.serviceDescription}</p>
+                        <p class="text-muted mb-4" style="white-space:pre-line">${escapeHtml(s.serviceDescription)}</p>
                     ` : ''}
 
                     <div class="row g-3 mb-4">
                         <div class="col-sm-6">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-clock text-primary fs-4"></i>
+                                <i class="bi bi-clock text-accent fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Длительность</small>
                                     <strong>${s.durationMinutes} мин</strong>
@@ -57,20 +89,20 @@ async function loadService(id) {
                         </div>
                         <div class="col-sm-6">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-currency-exchange text-primary fs-4"></i>
+                                <i class="bi bi-currency-exchange text-accent fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Стоимость</small>
-                                    <strong class="text-primary fs-5">${Number(s.servicePrice).toLocaleString()} ₽</strong>
+                                    <strong class="text-accent fs-5">${Number(s.servicePrice).toLocaleString()} ₽</strong>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="/schedule.html" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                        <a href="/contacts.html" class="btn btn-accent rounded-pill px-4 fw-semibold">
                             <i class="bi bi-calendar-check"></i> Записаться на приём
                         </a>
-                        <a href="tel:+79991234567" class="btn btn-outline-primary rounded-pill px-4">
+                        <a href="tel:+73435460645" class="btn btn-outline-primary rounded-pill px-4">
                             <i class="bi bi-telephone"></i> Позвонить
                         </a>
                     </div>
@@ -83,7 +115,7 @@ async function loadService(id) {
                             <ul class="list-unstyled small mb-0">
                                 <li class="mb-2 d-flex justify-content-between">
                                     <span class="text-muted">Категория:</span>
-                                    <span>${s.categoryName || '—'}</span>
+                                    <span>${escapeHtml(s.categoryName || '—')}</span>
                                 </li>
                                 <li class="mb-2 d-flex justify-content-between">
                                     <span class="text-muted">Длительность:</span>

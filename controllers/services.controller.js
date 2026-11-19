@@ -1,6 +1,8 @@
 const Service = require('../models/Service');
 const ServiceCategory = require('../models/ServiceCategory');
-const { slugify } = require('../utils/helpers');
+const { uniqueSlug } = require('../utils/helpers');
+
+const isStaff = (req) => Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'manager'));
 
 exports.getServices = async (req, res) => {
     try {
@@ -14,7 +16,7 @@ exports.getServices = async (req, res) => {
 
 exports.getService = async (req, res) => {
     try {
-        const service = await Service.getById(req.params.id);
+        const service = await Service.getById(req.params.id, { activeOnly: !isStaff(req) });
         if (!service) return res.status(404).json({ success: false, message: 'Услуга не найдена' });
         res.json({ success: true, service });
     } catch (e) {
@@ -32,7 +34,7 @@ exports.createService = async (req, res) => {
 
         const service = await Service.create({
             serviceName: req.body.serviceName,
-            serviceSlug: slugify(req.body.serviceName) + '-' + Date.now(),
+            serviceSlug: uniqueSlug(req.body.serviceName, 'service'),
             serviceDescription: req.body.serviceDescription,
             servicePrice,
             durationMinutes,
@@ -55,6 +57,9 @@ exports.updateService = async (req, res) => {
         }
 
         const service = await Service.update(req.params.id, req.body);
+        if (!service) {
+            return res.status(404).json({ success: false, message: 'Услуга не найдена' });
+        }
         res.json({ success: true, service });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });
@@ -81,7 +86,10 @@ exports.getCategories = async (req, res) => {
 
 exports.createCategory = async (req, res) => {
     try {
-        const category = await ServiceCategory.create({ ...req.body, categorySlug: slugify(req.body.categoryName) });
+        const category = await ServiceCategory.create({
+            ...req.body,
+            categorySlug: uniqueSlug(req.body.categoryName, 'service-cat')
+        });
         res.status(201).json({ success: true, category });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка создания категории' });
@@ -90,7 +98,13 @@ exports.createCategory = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     try {
-        const category = await ServiceCategory.update(req.params.id, req.body);
+        const category = await ServiceCategory.update(req.params.id, {
+            ...req.body,
+            categorySlug: uniqueSlug(req.body.categoryName, 'service-cat')
+        });
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Категория не найдена' });
+        }
         res.json({ success: true, category });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Ошибка обновления' });

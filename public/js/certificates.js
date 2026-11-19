@@ -27,8 +27,9 @@ function renderCertificates(certificates) {
     }
 
     container.innerHTML = certificates.map(cert => {
-        const isImage = cert.fileUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(cert.fileUrl);
-        const isPDF = cert.fileUrl && /\.pdf$/i.test(cert.fileUrl);
+        const fileSrc = safeUrl(cert.fileUrl);
+        const isImage = fileSrc && /\.(jpg|jpeg|png|gif|webp)$/i.test(cert.fileUrl);
+        const isPDF = fileSrc && /\.pdf$/i.test(cert.fileUrl);
 
         return `
         <div class="col-md-6">
@@ -39,19 +40,19 @@ function renderCertificates(certificates) {
                             ${isPDF ? '<i class="bi bi-file-pdf fs-2 text-danger"></i>' : '<i class="bi bi-award fs-2 text-primary"></i>'}
                         </div>
                         <div class="flex-grow-1 min-w-0">
-                            <h5 class="fw-bold mb-1 text-truncate">${cert.certificateName}</h5>
-                            ${cert.certificateDescription ? `<p class="text-muted small mb-2">${cert.certificateDescription.substring(0, 100)}</p>` : ''}
+                            <h5 class="fw-bold mb-1 text-truncate">${escapeHtml(cert.certificateName)}</h5>
+                            ${cert.certificateDescription ? `<p class="text-muted small mb-2">${escapeHtml(cert.certificateDescription.substring(0, 100))}</p>` : ''}
                             ${cert.issueDate ? `<small class="text-muted"><i class="bi bi-calendar-check"></i> Выдан: ${new Date(cert.issueDate).toLocaleDateString('ru-RU')}</small>` : ''}
                         </div>
                     </div>
-                    ${cert.fileUrl ? `
+                    ${fileSrc ? `
                         <div class="d-flex gap-2 mt-3 pt-3 border-top">
                             ${isImage ? `
-                                <button class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1 view-cert" data-cert='${JSON.stringify(cert).replace(/'/g, "&#39;")}'>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1 view-cert" data-cert-id="${escapeHtml(cert.certificateId)}">
                                     <i class="bi bi-eye"></i> Просмотреть
                                 </button>
                             ` : ''}
-                            <a href="${cert.fileUrl}" class="btn btn-sm btn-primary rounded-pill ${isImage ? 'flex-grow-1' : 'w-100'}" download target="_blank">
+                            <a href="${fileSrc}" class="btn btn-sm btn-primary rounded-pill ${isImage ? 'flex-grow-1' : 'w-100'}" download target="_blank" rel="noopener noreferrer">
                                 <i class="bi bi-download"></i> Скачать ${isPDF ? 'PDF' : ''}
                             </a>
                         </div>
@@ -64,8 +65,8 @@ function renderCertificates(certificates) {
     // Обработчики просмотра
     container.querySelectorAll('.view-cert').forEach(btn => {
         btn.addEventListener('click', () => {
-            const cert = JSON.parse(btn.dataset.cert.replace(/&#39;/g, "'"));
-            openCertificateModal(cert);
+            const cert = certificates.find(c => String(c.certificateId) === String(btn.dataset.certId));
+            if (cert) openCertificateModal(cert);
         });
     });
 }
@@ -73,13 +74,13 @@ function renderCertificates(certificates) {
 function openCertificateModal(cert) {
     const modal = new bootstrap.Modal(document.getElementById('certificateModal'));
 
-    document.getElementById('certModalTitle').innerHTML = `<i class="bi bi-award"></i> ${cert.certificateName}`;
-    document.getElementById('certModalImage').src = cert.fileUrl;
+    document.getElementById('certModalTitle').innerHTML = `<i class="bi bi-award"></i> ${escapeHtml(cert.certificateName)}`;
+    document.getElementById('certModalImage').src = safeUrl(cert.fileUrl);
     document.getElementById('certModalDesc').textContent = cert.certificateDescription || '';
     document.getElementById('certModalDate').textContent = cert.issueDate
         ? `Дата выдачи: ${new Date(cert.issueDate).toLocaleDateString('ru-RU')}`
         : '';
-    document.getElementById('certDownloadBtn').href = cert.fileUrl;
+    document.getElementById('certDownloadBtn').href = safeUrl(cert.fileUrl);
 
     modal.show();
 }

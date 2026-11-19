@@ -18,14 +18,15 @@ class Service {
         return result.rows;
     }
 
-    static async getById(serviceId) {
-        const result = await db.query(
-            `SELECT s.*, sc."categoryName"
+    static async getById(serviceId, { activeOnly = true } = {}) {
+        let query = `SELECT s.*, sc."categoryName"
              FROM services s
              LEFT JOIN service_categories sc ON s."categoryId" = sc."categoryId"
-             WHERE s."serviceId" = $1`,
-            [serviceId]
-        );
+             WHERE s."serviceId" = $1`;
+        if (activeOnly) {
+            query += ` AND s."isActive" = true`;
+        }
+        const result = await db.query(query, [serviceId]);
         return result.rows[0];
     }
 

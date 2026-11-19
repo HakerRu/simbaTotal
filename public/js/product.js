@@ -38,13 +38,42 @@ async function loadProduct(id) {
         const finalPrice = hasDiscount ? Number(p.productDiscountPrice) : Number(p.productPrice);
         const inStock = p.stockQuantity > 0;
 
+        document.title = `${p.productName} — купить в Нижнем Тагиле | Зоомагазин «Симба»`;
+
+        // Schema.org Product microdata для Яндекса
+        const existingSchema = document.getElementById('productSchemaJsonLd');
+        if (existingSchema) existingSchema.remove();
+        const schemaScript = document.createElement('script');
+        schemaScript.id = 'productSchemaJsonLd';
+        schemaScript.type = 'application/ld+json';
+        schemaScript.textContent = JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Product',
+            'name': p.productName,
+            'image': safeUrl(p.mainImage) ? [window.location.origin + safeUrl(p.mainImage)] : undefined,
+            'description': p.productDescription || `${p.productName} в зоомагазине ветклиники «Симба» (Нижний Тагил).`,
+            'offers': {
+                '@type': 'Offer',
+                'url': window.location.href,
+                'priceCurrency': 'RUB',
+                'price': finalPrice,
+                'availability': inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                'itemCondition': 'https://schema.org/NewCondition',
+                'seller': {
+                    '@type': 'VeterinaryCare',
+                    'name': 'ВетКлиника «Симба» (Нижний Тагил)'
+                }
+            }
+        });
+        document.head.appendChild(schemaScript);
+
         container.innerHTML = `
             <div class="row g-4 g-lg-5">
                 <!-- Фото -->
                 <div class="col-lg-6">
                     <div class="product-image-wrapper rounded-4 overflow-hidden shadow-sm bg-light" style="aspect-ratio:1">
-                        ${p.mainImage ? `
-                            <img src="${p.mainImage}" alt="${p.productName}" class="w-100 h-100" style="object-fit:cover">
+                        ${safeUrl(p.mainImage) ? `
+                            <img src="${safeUrl(p.mainImage)}" alt="${escapeHtml(p.productName)}" class="w-100 h-100" style="object-fit:cover">
                         ` : `
                             <div class="d-flex align-items-center justify-content-center h-100">
                                 <i class="bi bi-image text-muted" style="font-size:6rem"></i>
@@ -56,18 +85,18 @@ async function loadProduct(id) {
                 <!-- Инфа -->
                 <div class="col-lg-6">
                     ${p.categoryName ? `
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 px-3 py-2 rounded-pill">${p.categoryName}</span>
+                        <span class="badge bg-coral-soft mb-2 px-3 py-2 rounded-pill">${escapeHtml(p.categoryName)}</span>
                     ` : ''}
                     
-                    <h1 class="fw-bold mb-3">${p.productName}</h1>
+                    <h1 class="fw-bold mb-3">${escapeHtml(p.productName)}</h1>
                     
                     <div class="d-flex align-items-center gap-3 mb-3">
                         ${hasDiscount ? `
                             <span class="text-decoration-line-through text-muted fs-5">${Number(p.productPrice).toLocaleString()} ₽</span>
-                            <span class="fw-bold text-danger fs-3">${finalPrice.toLocaleString()} ₽</span>
-                            <span class="badge bg-danger">-${Math.round((1 - finalPrice / Number(p.productPrice)) * 100)}%</span>
+                            <span class="fw-bold text-accent fs-3">${finalPrice.toLocaleString()} ₽</span>
+                            <span class="badge product-discount-badge">-${Math.round((1 - finalPrice / Number(p.productPrice)) * 100)}%</span>
                         ` : `
-                            <span class="fw-bold text-primary fs-3">${finalPrice.toLocaleString()} ₽</span>
+                            <span class="fw-bold text-navy fs-3">${finalPrice.toLocaleString()} ₽</span>
                         `}
                     </div>
 
@@ -85,7 +114,7 @@ async function loadProduct(id) {
 
                     ${p.productDescription ? `
                         <h6 class="fw-bold mt-4 mb-2">Описание</h6>
-                        <p class="text-muted" style="white-space:pre-line">${p.productDescription}</p>
+                        <p class="text-muted" style="white-space:pre-line">${escapeHtml(p.productDescription)}</p>
                     ` : ''}
 
                     ${inStock ? `
@@ -103,7 +132,7 @@ async function loadProduct(id) {
                         </div>
 
                         <div class="d-flex gap-2">
-                            <button class="btn btn-primary btn-lg rounded-pill px-4 fw-semibold" id="addToCartBtn">
+                            <button class="btn btn-accent btn-lg rounded-pill px-4 fw-semibold" id="addToCartBtn">
                                 <i class="bi bi-cart-plus"></i> В корзину
                             </button>
                             <a href="/shop.html" class="btn btn-outline-primary btn-lg rounded-pill px-4">
@@ -157,7 +186,7 @@ function setupProductEvents(productId, maxStock) {
                 updateCartCount();
             }
         } catch (e) {
-            if (e.message.includes('401') || e.message.includes('авториз') || e.message.includes('Требуется')) {
+            if (e.status === 401 || e.message.includes('401') || e.message.includes('авториз') || e.message.includes('Требуется')) {
                 showToast('Войдите чтобы добавить в корзину', 'danger');
                 setTimeout(() => window.location.href = '/login.html', 1000);
             } else {
